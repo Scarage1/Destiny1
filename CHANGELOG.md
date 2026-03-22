@@ -2,10 +2,13 @@
 
 ## [Unreleased]
 ### Added
+- [T2] Graph schema v1 Pydantic models matching Domain Schema contracts.
 ### Changed
 ### Fixed
+- [T2] Resolved flake8 linting violations (F401, W291, E302, E501) across `test_graph_schema.py`.
 ### Docs
 ### Tests
+- [T2] Enforced strict tests restricting invalid relationship edge creation.
 
 ## [v0.1-data-foundation] - 2026-03-23
 ### Added

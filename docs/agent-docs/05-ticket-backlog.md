@@ -7,7 +7,7 @@
 - T4 Idempotent graph loader
 - T5 Flow integrity and required query tests
 - T6 Domain guardrails and query safety
-- T7 Schema-constrained NL to Cypher generator
+- T7 Schema-constrained NL to SQL generator
 - T8 Safe query execution and result normalization
 - T9 Grounded answer synthesis
 - T10 Query and graph API routes

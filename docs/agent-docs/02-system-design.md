@@ -3,9 +3,9 @@
 ## High-level flow
 1. User asks a natural-language question.
 2. Backend checks domain relevance.
-3. LLM generates schema-constrained Cypher.
+3. LLM generates schema-constrained SQL.
 4. Safety validator blocks unsafe patterns.
-5. Query executes via read-only Neo4j credentials.
+5. Query executes via read-only SQLite path.
 6. Results are normalized to a stable contract.
 7. LLM synthesizes grounded answer from results only.
 8. UI renders answer and highlights referenced graph nodes/edges.
