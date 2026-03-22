@@ -8,6 +8,8 @@ This project builds a context graph over SAP Order-to-Cash style entities and pr
 
 ## Architecture
 
+Detailed architecture write-up: [docs/architecture.md](docs/architecture.md)
+
 ### Stack
 - Backend: FastAPI + Python
 - Storage: SQLite (raw source of truth) + in-memory NetworkX graph for exploration
@@ -39,6 +41,11 @@ Implemented in [backend/guardrails.py](backend/guardrails.py):
 - Injection-like pattern blocking
 - Standard rejection response
 
+Additional guardrail documentation: [docs/guardrails.md](docs/guardrails.md)
+
+## Prompting Strategy
+- [docs/prompting-strategy.md](docs/prompting-strategy.md)
+
 ## Project Structure
 - [backend](backend): ingestion, graph build, LLM service, FastAPI
 - [frontend](frontend): graph explorer and chat UI
@@ -46,6 +53,8 @@ Implemented in [backend/guardrails.py](backend/guardrails.py):
 - [docs/ai-session-logs](docs/ai-session-logs): transcript index for submission evidence
 
 ## Local Setup
+
+Operational runbook: [docs/runbook.md](docs/runbook.md)
 
 ### Backend
 1. `python -m venv .venv`
@@ -81,3 +90,5 @@ Backend API runs on `:8000`, frontend on `:3000`.
 ## Submission checklist pointers
 - [docs/agent-docs/10-submission-checklist.md](docs/agent-docs/10-submission-checklist.md)
 - [docs/ai-session-logs/README.md](docs/ai-session-logs/README.md)
+- [docs/demo-script.md](docs/demo-script.md)
+- [docs/final-signoff.md](docs/final-signoff.md)

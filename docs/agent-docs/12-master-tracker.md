@@ -13,7 +13,7 @@
 | T9 | Grounded answer synthesis | P0 | Done | Builder | T8 | Grounding policy pass |
 | T10 | API endpoints | P0 | Done | API Builder | T9 | API contracts pass |
 | T11 | Frontend core UX | P0 | Done | Frontend Builder | T10 | End-to-end UI pass |
-| T12 | Docs/demo/submission | P0 | In Progress | Integrator/DocOps | T11 | Submission-ready |
+| T12 | Docs/demo/submission | P0 | Review | Integrator/DocOps | T11 | Submission-ready |
 
 ## Status values
 - Not Started
