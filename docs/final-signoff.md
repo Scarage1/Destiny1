@@ -17,8 +17,8 @@
 - [x] Architecture document available
 - [x] Guardrails and prompting docs available
 - [x] Runbook and demo script available
-- [ ] Demo link filled in README
-- [ ] Public repository link filled in README
+- [x] Demo link filled in README
+- [x] Public repository link filled in README
 - [ ] AI transcript files added to `docs/ai-session-logs`
 
 ## Submission
