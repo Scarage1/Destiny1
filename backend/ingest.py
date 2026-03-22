@@ -6,9 +6,23 @@ and loads them into SQLite tables.
 import json
 import os
 from pathlib import Path
+from typing import Any, Callable
+
 from database import get_db, init_schema, DB_PATH
+from ingestion.normalizer import (
+    normalize_customer,
+    normalize_delivery,
+    normalize_delivery_item,
+    normalize_invoice,
+    normalize_journal_entry,
+    normalize_payment,
+    normalize_product,
+    normalize_sales_order,
+    normalize_sales_order_item,
+)
 
 RAW_DATA_DIR = Path(__file__).parent.parent / "data" / "raw" / "sap-o2c-data"
+PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed"
 
 # Mapping: directory name -> (table name, column mapping)
 # column mapping: source_field -> db_column (None = skip)
@@ -255,6 +269,19 @@ ENTITY_MAP = {
     },
 }
 
+# Optional schema-backed normalization mapping (T3).
+NORMALIZER_MAP: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+    "business_partners": normalize_customer,
+    "sales_order_headers": normalize_sales_order,
+    "sales_order_items": normalize_sales_order_item,
+    "outbound_delivery_headers": normalize_delivery,
+    "outbound_delivery_items": normalize_delivery_item,
+    "billing_document_headers": normalize_invoice,
+    "journal_entry_items_accounts_receivable": normalize_journal_entry,
+    "payments_accounts_receivable": normalize_payment,
+    "products": normalize_product,
+}
+
 
 def _parse_value(val):
     """Normalize a JSON value for SQLite insertion."""
@@ -276,25 +303,34 @@ def _parse_value(val):
     return val
 
 
-def load_entity(entity_dir: str, table: str, columns: dict[str, str]):
+def load_entity(
+    entity_dir: str,
+    table: str,
+    columns: dict[str, str],
+    rejects: list[dict[str, Any]],
+) -> dict[str, int]:
     """Load all JSONL files from an entity directory into a SQLite table."""
     dir_path = RAW_DATA_DIR / entity_dir
     if not dir_path.exists():
         print(f"  ⚠ Directory not found: {entity_dir}")
-        return 0
+        return {"loaded": 0, "errors": 0, "rejected": 0}
 
     jsonl_files = sorted(dir_path.glob("*.jsonl"))
     if not jsonl_files:
         print(f"  ⚠ No JSONL files in: {entity_dir}")
-        return 0
+        return {"loaded": 0, "errors": 0, "rejected": 0}
 
     db_columns = list(columns.values())
     placeholders = ", ".join(["?"] * len(db_columns))
     col_names = ", ".join(db_columns)
-    insert_sql = f"INSERT OR REPLACE INTO {table} ({col_names}) VALUES ({placeholders})"
+    insert_sql = (
+        f"INSERT OR REPLACE INTO {table} ({col_names}) VALUES ({placeholders})"
+    )
 
     total = 0
     errors = 0
+    rejected = 0
+    normalizer = NORMALIZER_MAP.get(entity_dir)
 
     with get_db() as conn:
         for jf in jsonl_files:
@@ -305,6 +341,21 @@ def load_entity(entity_dir: str, table: str, columns: dict[str, str]):
                         continue
                     try:
                         record = json.loads(line)
+                        if normalizer is not None:
+                            try:
+                                record = normalizer(record)
+                            except Exception as norm_error:
+                                rejected += 1
+                                rejects.append(
+                                    {
+                                        "entity": entity_dir,
+                                        "file": jf.name,
+                                        "line": line_num,
+                                        "reason": f"normalization_failed: {norm_error}",
+                                    }
+                                )
+                                continue
+
                         values = []
                         for src_field, db_col in columns.items():
                             raw_val = record.get(src_field)
@@ -313,10 +364,18 @@ def load_entity(entity_dir: str, table: str, columns: dict[str, str]):
                         total += 1
                     except Exception as e:
                         errors += 1
+                        rejects.append(
+                            {
+                                "entity": entity_dir,
+                                "file": jf.name,
+                                "line": line_num,
+                                "reason": f"ingestion_failed: {e}",
+                            }
+                        )
                         if errors <= 3:
                             print(f"  ⚠ Error in {jf.name}:{line_num}: {e}")
 
-    return total
+    return {"loaded": total, "errors": errors, "rejected": rejected}
 
 
 def run_ingestion():
@@ -336,15 +395,54 @@ def run_ingestion():
 
     # Load each entity
     total_records = 0
+    total_errors = 0
+    total_rejected = 0
+    rejects: list[dict[str, Any]] = []
+    entity_stats: dict[str, dict[str, int | str]] = {}
+
     for entity_dir, config in ENTITY_MAP.items():
-        count = load_entity(entity_dir, config["table"], config["columns"])
-        total_records += count
-        print(f"  ✓ {config['table']}: {count} records")
+        result = load_entity(
+            entity_dir, config["table"], config["columns"], rejects
+        )
+        total_records += result["loaded"]
+        total_errors += result["errors"]
+        total_rejected += result["rejected"]
+        entity_stats[entity_dir] = {
+            "table": config["table"],
+            "loaded": result["loaded"],
+            "errors": result["errors"],
+            "rejected": result["rejected"],
+        }
+        print(
+            f"  ✓ {config['table']}: {result['loaded']} records "
+            f"(errors={result['errors']}, rejected={result['rejected']})"
+        )
+
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    summary = {
+        "database": str(DB_PATH),
+        "total_loaded": total_records,
+        "total_errors": total_errors,
+        "total_rejected": total_rejected,
+        "normalized_entities": sorted(NORMALIZER_MAP.keys()),
+        "entities": entity_stats,
+    }
+
+    summary_path = PROCESSED_DIR / "ingestion_summary.json"
+    rejects_path = PROCESSED_DIR / "normalization_rejects.json"
+    summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    rejects_path.write_text(json.dumps(rejects, indent=2), encoding="utf-8")
 
     print(f"\n{'=' * 60}")
     print(f"Total records loaded: {total_records}")
+    print(f"Total errors: {total_errors}")
+    print(f"Total rejected: {total_rejected}")
     print(f"Database: {DB_PATH}")
+    print(f"Summary: {summary_path}")
+    print(f"Reject report: {rejects_path}")
     print(f"{'=' * 60}")
+
+    return summary
 
 
 if __name__ == "__main__":

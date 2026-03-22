@@ -1,0 +1,121 @@
+{
+  "database": "/Users/shivamkumar/Desktop/task/data/o2c.db",
+  "total_loaded": 1634,
+  "total_errors": 0,
+  "total_rejected": 0,
+  "normalized_entities": [
+    "billing_document_headers",
+    "business_partners",
+    "journal_entry_items_accounts_receivable",
+    "outbound_delivery_headers",
+    "outbound_delivery_items",
+    "payments_accounts_receivable",
+    "products",
+    "sales_order_headers",
+    "sales_order_items"
+  ],
+  "entities": {
+    "sales_order_headers": {
+      "table": "sales_order_headers",
+      "loaded": 100,
+      "errors": 0,
+      "rejected": 0
+    },
+    "sales_order_items": {
+      "table": "sales_order_items",
+      "loaded": 167,
+      "errors": 0,
+      "rejected": 0
+    },
+    "sales_order_schedule_lines": {
+      "table": "sales_order_schedule_lines",
+      "loaded": 179,
+      "errors": 0,
+      "rejected": 0
+    },
+    "outbound_delivery_headers": {
+      "table": "outbound_delivery_headers",
+      "loaded": 86,
+      "errors": 0,
+      "rejected": 0
+    },
+    "outbound_delivery_items": {
+      "table": "outbound_delivery_items",
+      "loaded": 137,
+      "errors": 0,
+      "rejected": 0
+    },
+    "billing_document_headers": {
+      "table": "billing_document_headers",
+      "loaded": 163,
+      "errors": 0,
+      "rejected": 0
+    },
+    "billing_document_items": {
+      "table": "billing_document_items",
+      "loaded": 245,
+      "errors": 0,
+      "rejected": 0
+    },
+    "billing_document_cancellations": {
+      "table": "billing_document_cancellations",
+      "loaded": 80,
+      "errors": 0,
+      "rejected": 0
+    },
+    "journal_entry_items_accounts_receivable": {
+      "table": "journal_entry_items",
+      "loaded": 123,
+      "errors": 0,
+      "rejected": 0
+    },
+    "payments_accounts_receivable": {
+      "table": "payments",
+      "loaded": 120,
+      "errors": 0,
+      "rejected": 0
+    },
+    "business_partners": {
+      "table": "business_partners",
+      "loaded": 8,
+      "errors": 0,
+      "rejected": 0
+    },
+    "business_partner_addresses": {
+      "table": "business_partner_addresses",
+      "loaded": 8,
+      "errors": 0,
+      "rejected": 0
+    },
+    "customer_company_assignments": {
+      "table": "customer_company_assignments",
+      "loaded": 8,
+      "errors": 0,
+      "rejected": 0
+    },
+    "customer_sales_area_assignments": {
+      "table": "customer_sales_area_assignments",
+      "loaded": 28,
+      "errors": 0,
+      "rejected": 0
+    },
+    "products": {
+      "table": "products",
+      "loaded": 69,
+      "errors": 0,
+      "rejected": 0
+    },
+    "product_descriptions": {
+      "table": "product_descriptions",
+      "loaded": 69,
+      "errors": 0,
+      "rejected": 0
+    },
+    "plants": {
+      "table": "plants",
+      "loaded": 44,
+      "errors": 0,
+      "rejected": 0
+    }
+  }
+}

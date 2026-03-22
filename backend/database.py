@@ -4,7 +4,6 @@ Handles schema creation, connection management, and query execution.
 """
 
 import sqlite3
-import os
 from pathlib import Path
 from contextlib import contextmanager
 from typing import Any
@@ -35,18 +34,34 @@ def get_db():
         conn.close()
 
 
-def execute_readonly_query(sql: str, params: tuple = ()) -> list[dict[str, Any]]:
+def execute_readonly_query(
+    sql: str, params: tuple = ()
+) -> list[dict[str, Any]]:
     """Execute a read-only SQL query and return results as list of dicts."""
     # Safety: reject write operations
     sql_upper = sql.strip().upper()
-    write_keywords = ["INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "CREATE", "REPLACE", "TRUNCATE", "MERGE"]
+    write_keywords = [
+        "INSERT",
+        "UPDATE",
+        "DELETE",
+        "DROP",
+        "ALTER",
+        "CREATE",
+        "REPLACE",
+        "TRUNCATE",
+        "MERGE",
+    ]
     for kw in write_keywords:
         if sql_upper.startswith(kw):
             raise ValueError(f"Write operations are not allowed: {kw}")
 
     with get_db() as conn:
         cursor = conn.execute(sql, params)
-        columns = [desc[0] for desc in cursor.description] if cursor.description else []
+        columns = (
+            [desc[0] for desc in cursor.description]
+            if cursor.description
+            else []
+        )
         rows = cursor.fetchall()
         return [dict(zip(columns, row)) for row in rows]
 
@@ -54,7 +69,9 @@ def execute_readonly_query(sql: str, params: tuple = ()) -> list[dict[str, Any]]
 def get_schema_description() -> str:
     """Generate a human-readable schema description for LLM prompting."""
     with get_db() as conn:
-        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+        cursor = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        )
         tables = [row[0] for row in cursor.fetchall()]
 
         schema_parts = []
@@ -66,7 +83,9 @@ def get_schema_description() -> str:
             cursor = conn.execute(f"SELECT COUNT(*) FROM {table}")
             count = cursor.fetchone()[0]
 
-            schema_parts.append(f"Table: {table} ({count} rows)\n" + "\n".join(col_descs))
+            schema_parts.append(
+                f"Table: {table} ({count} rows)\n" + "\n".join(col_descs)
+            )
 
         return "\n\n".join(schema_parts)
 

@@ -9,8 +9,8 @@
 - Why: Natural fit for lineage and flow traversal, simpler than complex relational joins for this use case.
 
 ## ADR-003: Query strategy
-- Decision: Cypher-only in v1
-- Why: Keeps pipeline focused and reduces failure surface from dual SQL/Cypher complexity.
+- Decision: SQL-only in v1 (SQLite execution)
+- Why: Matches current implementation, keeps delivery risk low, and avoids dual SQL/Cypher failure surface before deadline.
 
 ## ADR-004: LLM strategy
 - Decision: 2-stage approach

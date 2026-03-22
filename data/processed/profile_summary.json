@@ -1,0 +1,2469 @@
+{
+  "raw_root": "/Users/shivamkumar/Desktop/task/data/raw/sap-o2c-data",
+  "entity_count": 19,
+  "total_rows": 21393,
+  "entities": {
+    "billing_document_cancellations": {
+      "files": 1,
+      "rows": 80,
+      "parse_errors": 0,
+      "columns": {
+        "accountingDocument": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 80,
+          "unique_pct_of_non_null": 100.0
+        },
+        "billingDocument": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 80,
+          "unique_pct_of_non_null": 100.0
+        },
+        "billingDocumentDate": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.5
+        },
+        "billingDocumentIsCancelled": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.25
+        },
+        "billingDocumentType": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.25
+        },
+        "cancelledBillingDocument": {
+          "non_null": 0,
+          "nulls": 80,
+          "total": 80,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "companyCode": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.25
+        },
+        "creationDate": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.5
+        },
+        "creationTime": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 4,
+          "unique_pct_of_non_null": 5.0
+        },
+        "fiscalYear": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.25
+        },
+        "lastChangeDateTime": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 80,
+          "unique_pct_of_non_null": 100.0
+        },
+        "soldToParty": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 4,
+          "unique_pct_of_non_null": 5.0
+        },
+        "totalNetAmount": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 46,
+          "unique_pct_of_non_null": 57.5
+        },
+        "transactionCurrency": {
+          "non_null": 80,
+          "nulls": 0,
+          "total": 80,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.25
+        }
+      },
+      "candidate_keys": [
+        "accountingDocument",
+        "billingDocument",
+        "lastChangeDateTime"
+      ]
+    },
+    "billing_document_headers": {
+      "files": 2,
+      "rows": 163,
+      "parse_errors": 0,
+      "columns": {
+        "accountingDocument": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 163,
+          "unique_pct_of_non_null": 100.0
+        },
+        "billingDocument": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 163,
+          "unique_pct_of_non_null": 100.0
+        },
+        "billingDocumentDate": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 1.84
+        },
+        "billingDocumentIsCancelled": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.23
+        },
+        "billingDocumentType": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.23
+        },
+        "cancelledBillingDocument": {
+          "non_null": 80,
+          "nulls": 83,
+          "total": 163,
+          "null_pct": 50.92,
+          "unique_count": 80,
+          "unique_pct_of_non_null": 100.0
+        },
+        "companyCode": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.61
+        },
+        "creationDate": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 4,
+          "unique_pct_of_non_null": 2.45
+        },
+        "creationTime": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 6,
+          "unique_pct_of_non_null": 3.68
+        },
+        "fiscalYear": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.61
+        },
+        "lastChangeDateTime": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 84,
+          "unique_pct_of_non_null": 51.53
+        },
+        "soldToParty": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 4,
+          "unique_pct_of_non_null": 2.45
+        },
+        "totalNetAmount": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 47,
+          "unique_pct_of_non_null": 28.83
+        },
+        "transactionCurrency": {
+          "non_null": 163,
+          "nulls": 0,
+          "total": 163,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.61
+        }
+      },
+      "candidate_keys": [
+        "accountingDocument",
+        "billingDocument",
+        "cancelledBillingDocument"
+      ]
+    },
+    "billing_document_items": {
+      "files": 2,
+      "rows": 245,
+      "parse_errors": 0,
+      "columns": {
+        "billingDocument": {
+          "non_null": 245,
+          "nulls": 0,
+          "total": 245,
+          "null_pct": 0.0,
+          "unique_count": 163,
+          "unique_pct_of_non_null": 66.53
+        },
+        "billingDocumentItem": {
+          "non_null": 245,
+          "nulls": 0,
+          "total": 245,
+          "null_pct": 0.0,
+          "unique_count": 12,
+          "unique_pct_of_non_null": 4.9
+        },
+        "billingQuantity": {
+          "non_null": 245,
+          "nulls": 0,
+          "total": 245,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 0.82
+        },
+        "billingQuantityUnit": {
+          "non_null": 245,
+          "nulls": 0,
+          "total": 245,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.41
+        },
+        "material": {
+          "non_null": 245,
+          "nulls": 0,
+          "total": 245,
+          "null_pct": 0.0,
+          "unique_count": 55,
+          "unique_pct_of_non_null": 22.45
+        },
+        "netAmount": {
+          "non_null": 245,
+          "nulls": 0,
+          "total": 245,
+          "null_pct": 0.0,
+          "unique_count": 53,
+          "unique_pct_of_non_null": 21.63
+        },
+        "referenceSdDocument": {
+          "non_null": 245,
+          "nulls": 0,
+          "total": 245,
+          "null_pct": 0.0,
+          "unique_count": 83,
+          "unique_pct_of_non_null": 33.88
+        },
+        "referenceSdDocumentItem": {
+          "non_null": 245,
+          "nulls": 0,
+          "total": 245,
+          "null_pct": 0.0,
+          "unique_count": 12,
+          "unique_pct_of_non_null": 4.9
+        },
+        "transactionCurrency": {
+          "non_null": 245,
+          "nulls": 0,
+          "total": 245,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.41
+        }
+      },
+      "candidate_keys": []
+    },
+    "business_partner_addresses": {
+      "files": 1,
+      "rows": 8,
+      "parse_errors": 0,
+      "columns": {
+        "addressId": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 100.0
+        },
+        "addressTimeZone": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 12.5
+        },
+        "addressUuid": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 100.0
+        },
+        "businessPartner": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 100.0
+        },
+        "cityName": {
+          "non_null": 2,
+          "nulls": 6,
+          "total": 8,
+          "null_pct": 75.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 100.0
+        },
+        "country": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 12.5
+        },
+        "poBox": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "poBoxDeviatingCityName": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "poBoxDeviatingCountry": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "poBoxDeviatingRegion": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "poBoxIsWithoutNumber": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 12.5
+        },
+        "poBoxLobbyName": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "poBoxPostalCode": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "postalCode": {
+          "non_null": 3,
+          "nulls": 5,
+          "total": 8,
+          "null_pct": 62.5,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 100.0
+        },
+        "region": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 7,
+          "unique_pct_of_non_null": 87.5
+        },
+        "streetName": {
+          "non_null": 2,
+          "nulls": 6,
+          "total": 8,
+          "null_pct": 75.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 100.0
+        },
+        "taxJurisdiction": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "transportZone": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "validityEndDate": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 12.5
+        },
+        "validityStartDate": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 25.0
+        }
+      },
+      "candidate_keys": [
+        "addressId",
+        "addressUuid",
+        "businessPartner",
+        "cityName",
+        "postalCode",
+        "streetName"
+      ]
+    },
+    "business_partners": {
+      "files": 1,
+      "rows": 8,
+      "parse_errors": 0,
+      "columns": {
+        "businessPartner": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 100.0
+        },
+        "businessPartnerCategory": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 12.5
+        },
+        "businessPartnerFullName": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 100.0
+        },
+        "businessPartnerGrouping": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 25.0
+        },
+        "businessPartnerIsBlocked": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 25.0
+        },
+        "businessPartnerName": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 100.0
+        },
+        "correspondenceLanguage": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "createdByUser": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 25.0
+        },
+        "creationDate": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 25.0
+        },
+        "creationTime": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 4,
+          "unique_pct_of_non_null": 50.0
+        },
+        "customer": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 100.0
+        },
+        "firstName": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "formOfAddress": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 12.5
+        },
+        "industry": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "isMarkedForArchiving": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 25.0
+        },
+        "lastChangeDate": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 4,
+          "unique_pct_of_non_null": 50.0
+        },
+        "lastName": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "organizationBpName1": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 100.0
+        },
+        "organizationBpName2": {
+          "non_null": 1,
+          "nulls": 7,
+          "total": 8,
+          "null_pct": 87.5,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 100.0
+        }
+      },
+      "candidate_keys": [
+        "businessPartner",
+        "businessPartnerFullName",
+        "businessPartnerName",
+        "customer",
+        "organizationBpName1",
+        "organizationBpName2"
+      ]
+    },
+    "customer_company_assignments": {
+      "files": 1,
+      "rows": 8,
+      "parse_errors": 0,
+      "columns": {
+        "accountingClerk": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "accountingClerkFaxNumber": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "accountingClerkInternetAddress": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "accountingClerkPhoneNumber": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "alternativePayerAccount": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "companyCode": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 12.5
+        },
+        "customer": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 100.0
+        },
+        "customerAccountGroup": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 25.0
+        },
+        "deletionIndicator": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 25.0
+        },
+        "paymentBlockingReason": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "paymentMethodsList": {
+          "non_null": 0,
+          "nulls": 8,
+          "total": 8,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "paymentTerms": {
+          "non_null": 2,
+          "nulls": 6,
+          "total": 8,
+          "null_pct": 75.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 50.0
+        },
+        "reconciliationAccount": {
+          "non_null": 8,
+          "nulls": 0,
+          "total": 8,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 25.0
+        }
+      },
+      "candidate_keys": [
+        "customer"
+      ]
+    },
+    "customer_sales_area_assignments": {
+      "files": 1,
+      "rows": 28,
+      "parse_errors": 0,
+      "columns": {
+        "billingIsBlockedForCustomer": {
+          "non_null": 0,
+          "nulls": 28,
+          "total": 28,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "completeDeliveryIsDefined": {
+          "non_null": 28,
+          "nulls": 0,
+          "total": 28,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 3.57
+        },
+        "creditControlArea": {
+          "non_null": 0,
+          "nulls": 28,
+          "total": 28,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "currency": {
+          "non_null": 28,
+          "nulls": 0,
+          "total": 28,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 3.57
+        },
+        "customer": {
+          "non_null": 28,
+          "nulls": 0,
+          "total": 28,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 28.57
+        },
+        "customerPaymentTerms": {
+          "non_null": 28,
+          "nulls": 0,
+          "total": 28,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 7.14
+        },
+        "deliveryPriority": {
+          "non_null": 28,
+          "nulls": 0,
+          "total": 28,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 3.57
+        },
+        "distributionChannel": {
+          "non_null": 28,
+          "nulls": 0,
+          "total": 28,
+          "null_pct": 0.0,
+          "unique_count": 5,
+          "unique_pct_of_non_null": 17.86
+        },
+        "division": {
+          "non_null": 28,
+          "nulls": 0,
+          "total": 28,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 3.57
+        },
+        "exchangeRateType": {
+          "non_null": 2,
+          "nulls": 26,
+          "total": 28,
+          "null_pct": 92.86,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 50.0
+        },
+        "incotermsClassification": {
+          "non_null": 23,
+          "nulls": 5,
+          "total": 28,
+          "null_pct": 17.86,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 4.35
+        },
+        "incotermsLocation1": {
+          "non_null": 23,
+          "nulls": 5,
+          "total": 28,
+          "null_pct": 17.86,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 13.04
+        },
+        "salesDistrict": {
+          "non_null": 0,
+          "nulls": 28,
+          "total": 28,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "salesGroup": {
+          "non_null": 0,
+          "nulls": 28,
+          "total": 28,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "salesOffice": {
+          "non_null": 0,
+          "nulls": 28,
+          "total": 28,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "salesOrganization": {
+          "non_null": 28,
+          "nulls": 0,
+          "total": 28,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 3.57
+        },
+        "shippingCondition": {
+          "non_null": 22,
+          "nulls": 6,
+          "total": 28,
+          "null_pct": 21.43,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 4.55
+        },
+        "slsUnlmtdOvrdelivIsAllwd": {
+          "non_null": 28,
+          "nulls": 0,
+          "total": 28,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 3.57
+        },
+        "supplyingPlant": {
+          "non_null": 0,
+          "nulls": 28,
+          "total": 28,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        }
+      },
+      "candidate_keys": []
+    },
+    "journal_entry_items_accounts_receivable": {
+      "files": 4,
+      "rows": 123,
+      "parse_errors": 0,
+      "columns": {
+        "accountingDocument": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 123,
+          "unique_pct_of_non_null": 100.0
+        },
+        "accountingDocumentItem": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.81
+        },
+        "accountingDocumentType": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.81
+        },
+        "amountInCompanyCodeCurrency": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 79,
+          "unique_pct_of_non_null": 64.23
+        },
+        "amountInTransactionCurrency": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 79,
+          "unique_pct_of_non_null": 64.23
+        },
+        "assignmentReference": {
+          "non_null": 0,
+          "nulls": 123,
+          "total": 123,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "clearingAccountingDocument": {
+          "non_null": 120,
+          "nulls": 3,
+          "total": 123,
+          "null_pct": 2.44,
+          "unique_count": 76,
+          "unique_pct_of_non_null": 63.33
+        },
+        "clearingDate": {
+          "non_null": 120,
+          "nulls": 3,
+          "total": 123,
+          "null_pct": 2.44,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.67
+        },
+        "clearingDocFiscalYear": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.63
+        },
+        "companyCode": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.81
+        },
+        "companyCodeCurrency": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.81
+        },
+        "costCenter": {
+          "non_null": 0,
+          "nulls": 123,
+          "total": 123,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "customer": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.63
+        },
+        "documentDate": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 2.44
+        },
+        "financialAccountType": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.81
+        },
+        "fiscalYear": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.81
+        },
+        "glAccount": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.81
+        },
+        "lastChangeDateTime": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 2.44
+        },
+        "postingDate": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 2.44
+        },
+        "profitCenter": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.81
+        },
+        "referenceDocument": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 123,
+          "unique_pct_of_non_null": 100.0
+        },
+        "transactionCurrency": {
+          "non_null": 123,
+          "nulls": 0,
+          "total": 123,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.81
+        }
+      },
+      "candidate_keys": [
+        "accountingDocument",
+        "referenceDocument"
+      ]
+    },
+    "outbound_delivery_headers": {
+      "files": 1,
+      "rows": 86,
+      "parse_errors": 0,
+      "columns": {
+        "actualGoodsMovementDate": {
+          "non_null": 3,
+          "nulls": 83,
+          "total": 86,
+          "null_pct": 96.51,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 66.67
+        },
+        "actualGoodsMovementTime": {
+          "non_null": 86,
+          "nulls": 0,
+          "total": 86,
+          "null_pct": 0.0,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 3.49
+        },
+        "creationDate": {
+          "non_null": 86,
+          "nulls": 0,
+          "total": 86,
+          "null_pct": 0.0,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 3.49
+        },
+        "creationTime": {
+          "non_null": 86,
+          "nulls": 0,
+          "total": 86,
+          "null_pct": 0.0,
+          "unique_count": 7,
+          "unique_pct_of_non_null": 8.14
+        },
+        "deliveryBlockReason": {
+          "non_null": 0,
+          "nulls": 86,
+          "total": 86,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "deliveryDocument": {
+          "non_null": 86,
+          "nulls": 0,
+          "total": 86,
+          "null_pct": 0.0,
+          "unique_count": 86,
+          "unique_pct_of_non_null": 100.0
+        },
+        "hdrGeneralIncompletionStatus": {
+          "non_null": 86,
+          "nulls": 0,
+          "total": 86,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.16
+        },
+        "headerBillingBlockReason": {
+          "non_null": 0,
+          "nulls": 86,
+          "total": 86,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "lastChangeDate": {
+          "non_null": 83,
+          "nulls": 3,
+          "total": 86,
+          "null_pct": 3.49,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 3.61
+        },
+        "overallGoodsMovementStatus": {
+          "non_null": 86,
+          "nulls": 0,
+          "total": 86,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.33
+        },
+        "overallPickingStatus": {
+          "non_null": 86,
+          "nulls": 0,
+          "total": 86,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.16
+        },
+        "overallProofOfDeliveryStatus": {
+          "non_null": 0,
+          "nulls": 86,
+          "total": 86,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "shippingPoint": {
+          "non_null": 86,
+          "nulls": 0,
+          "total": 86,
+          "null_pct": 0.0,
+          "unique_count": 5,
+          "unique_pct_of_non_null": 5.81
+        }
+      },
+      "candidate_keys": [
+        "deliveryDocument"
+      ]
+    },
+    "outbound_delivery_items": {
+      "files": 2,
+      "rows": 137,
+      "parse_errors": 0,
+      "columns": {
+        "actualDeliveryQuantity": {
+          "non_null": 137,
+          "nulls": 0,
+          "total": 137,
+          "null_pct": 0.0,
+          "unique_count": 11,
+          "unique_pct_of_non_null": 8.03
+        },
+        "batch": {
+          "non_null": 113,
+          "nulls": 24,
+          "total": 137,
+          "null_pct": 17.52,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.88
+        },
+        "deliveryDocument": {
+          "non_null": 137,
+          "nulls": 0,
+          "total": 137,
+          "null_pct": 0.0,
+          "unique_count": 86,
+          "unique_pct_of_non_null": 62.77
+        },
+        "deliveryDocumentItem": {
+          "non_null": 137,
+          "nulls": 0,
+          "total": 137,
+          "null_pct": 0.0,
+          "unique_count": 12,
+          "unique_pct_of_non_null": 8.76
+        },
+        "deliveryQuantityUnit": {
+          "non_null": 137,
+          "nulls": 0,
+          "total": 137,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.73
+        },
+        "itemBillingBlockReason": {
+          "non_null": 0,
+          "nulls": 137,
+          "total": 137,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "lastChangeDate": {
+          "non_null": 0,
+          "nulls": 137,
+          "total": 137,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "plant": {
+          "non_null": 137,
+          "nulls": 0,
+          "total": 137,
+          "null_pct": 0.0,
+          "unique_count": 5,
+          "unique_pct_of_non_null": 3.65
+        },
+        "referenceSdDocument": {
+          "non_null": 137,
+          "nulls": 0,
+          "total": 137,
+          "null_pct": 0.0,
+          "unique_count": 86,
+          "unique_pct_of_non_null": 62.77
+        },
+        "referenceSdDocumentItem": {
+          "non_null": 137,
+          "nulls": 0,
+          "total": 137,
+          "null_pct": 0.0,
+          "unique_count": 12,
+          "unique_pct_of_non_null": 8.76
+        },
+        "storageLocation": {
+          "non_null": 137,
+          "nulls": 0,
+          "total": 137,
+          "null_pct": 0.0,
+          "unique_count": 6,
+          "unique_pct_of_non_null": 4.38
+        }
+      },
+      "candidate_keys": []
+    },
+    "payments_accounts_receivable": {
+      "files": 1,
+      "rows": 120,
+      "parse_errors": 0,
+      "columns": {
+        "accountingDocument": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 120,
+          "unique_pct_of_non_null": 100.0
+        },
+        "accountingDocumentItem": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.83
+        },
+        "amountInCompanyCodeCurrency": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 78,
+          "unique_pct_of_non_null": 65.0
+        },
+        "amountInTransactionCurrency": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 78,
+          "unique_pct_of_non_null": 65.0
+        },
+        "assignmentReference": {
+          "non_null": 0,
+          "nulls": 120,
+          "total": 120,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "clearingAccountingDocument": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 76,
+          "unique_pct_of_non_null": 63.33
+        },
+        "clearingDate": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.67
+        },
+        "clearingDocFiscalYear": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.83
+        },
+        "companyCode": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.83
+        },
+        "companyCodeCurrency": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.83
+        },
+        "costCenter": {
+          "non_null": 0,
+          "nulls": 120,
+          "total": 120,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "customer": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.67
+        },
+        "documentDate": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.67
+        },
+        "financialAccountType": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.83
+        },
+        "fiscalYear": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.83
+        },
+        "glAccount": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.83
+        },
+        "invoiceReference": {
+          "non_null": 0,
+          "nulls": 120,
+          "total": 120,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "invoiceReferenceFiscalYear": {
+          "non_null": 0,
+          "nulls": 120,
+          "total": 120,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "postingDate": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.67
+        },
+        "profitCenter": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.83
+        },
+        "salesDocument": {
+          "non_null": 0,
+          "nulls": 120,
+          "total": 120,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "salesDocumentItem": {
+          "non_null": 0,
+          "nulls": 120,
+          "total": 120,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "transactionCurrency": {
+          "non_null": 120,
+          "nulls": 0,
+          "total": 120,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.83
+        }
+      },
+      "candidate_keys": [
+        "accountingDocument"
+      ]
+    },
+    "plants": {
+      "files": 1,
+      "rows": 44,
+      "parse_errors": 0,
+      "columns": {
+        "addressId": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 44,
+          "unique_pct_of_non_null": 100.0
+        },
+        "defaultPurchasingOrganization": {
+          "non_null": 0,
+          "nulls": 44,
+          "total": 44,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "distributionChannel": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 2.27
+        },
+        "division": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 2.27
+        },
+        "factoryCalendar": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 2.27
+        },
+        "isMarkedForArchiving": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 2.27
+        },
+        "language": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 2.27
+        },
+        "plant": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 44,
+          "unique_pct_of_non_null": 100.0
+        },
+        "plantCategory": {
+          "non_null": 0,
+          "nulls": 44,
+          "total": 44,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "plantCustomer": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 44,
+          "unique_pct_of_non_null": 100.0
+        },
+        "plantName": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 44,
+          "unique_pct_of_non_null": 100.0
+        },
+        "plantSupplier": {
+          "non_null": 35,
+          "nulls": 9,
+          "total": 44,
+          "null_pct": 20.45,
+          "unique_count": 35,
+          "unique_pct_of_non_null": 100.0
+        },
+        "salesOrganization": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 2.27
+        },
+        "valuationArea": {
+          "non_null": 44,
+          "nulls": 0,
+          "total": 44,
+          "null_pct": 0.0,
+          "unique_count": 44,
+          "unique_pct_of_non_null": 100.0
+        }
+      },
+      "candidate_keys": [
+        "addressId",
+        "plant",
+        "plantCustomer",
+        "plantName",
+        "plantSupplier",
+        "valuationArea"
+      ]
+    },
+    "product_descriptions": {
+      "files": 2,
+      "rows": 69,
+      "parse_errors": 0,
+      "columns": {
+        "language": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.45
+        },
+        "product": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 69,
+          "unique_pct_of_non_null": 100.0
+        },
+        "productDescription": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 69,
+          "unique_pct_of_non_null": 100.0
+        }
+      },
+      "candidate_keys": [
+        "product",
+        "productDescription"
+      ]
+    },
+    "product_plants": {
+      "files": 4,
+      "rows": 3036,
+      "parse_errors": 0,
+      "columns": {
+        "availabilityCheckType": {
+          "non_null": 3036,
+          "nulls": 0,
+          "total": 3036,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.03
+        },
+        "countryOfOrigin": {
+          "non_null": 0,
+          "nulls": 3036,
+          "total": 3036,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "fiscalYearVariant": {
+          "non_null": 0,
+          "nulls": 3036,
+          "total": 3036,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "mrpType": {
+          "non_null": 3036,
+          "nulls": 0,
+          "total": 3036,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.03
+        },
+        "plant": {
+          "non_null": 3036,
+          "nulls": 0,
+          "total": 3036,
+          "null_pct": 0.0,
+          "unique_count": 44,
+          "unique_pct_of_non_null": 1.45
+        },
+        "product": {
+          "non_null": 3036,
+          "nulls": 0,
+          "total": 3036,
+          "null_pct": 0.0,
+          "unique_count": 69,
+          "unique_pct_of_non_null": 2.27
+        },
+        "productionInvtryManagedLoc": {
+          "non_null": 0,
+          "nulls": 3036,
+          "total": 3036,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "profitCenter": {
+          "non_null": 3036,
+          "nulls": 0,
+          "total": 3036,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 0.07
+        },
+        "regionOfOrigin": {
+          "non_null": 0,
+          "nulls": 3036,
+          "total": 3036,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        }
+      },
+      "candidate_keys": []
+    },
+    "product_storage_locations": {
+      "files": 18,
+      "rows": 16723,
+      "parse_errors": 0,
+      "columns": {
+        "dateOfLastPostedCntUnRstrcdStk": {
+          "non_null": 0,
+          "nulls": 16723,
+          "total": 16723,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "physicalInventoryBlockInd": {
+          "non_null": 0,
+          "nulls": 16723,
+          "total": 16723,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "plant": {
+          "non_null": 16723,
+          "nulls": 0,
+          "total": 16723,
+          "null_pct": 0.0,
+          "unique_count": 44,
+          "unique_pct_of_non_null": 0.26
+        },
+        "product": {
+          "non_null": 16723,
+          "nulls": 0,
+          "total": 16723,
+          "null_pct": 0.0,
+          "unique_count": 69,
+          "unique_pct_of_non_null": 0.41
+        },
+        "storageLocation": {
+          "non_null": 16723,
+          "nulls": 0,
+          "total": 16723,
+          "null_pct": 0.0,
+          "unique_count": 225,
+          "unique_pct_of_non_null": 1.35
+        }
+      },
+      "candidate_keys": []
+    },
+    "products": {
+      "files": 2,
+      "rows": 69,
+      "parse_errors": 0,
+      "columns": {
+        "baseUnit": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.45
+        },
+        "createdByUser": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.45
+        },
+        "creationDate": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.9
+        },
+        "crossPlantStatus": {
+          "non_null": 0,
+          "nulls": 69,
+          "total": 69,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "crossPlantStatusValidityDate": {
+          "non_null": 0,
+          "nulls": 69,
+          "total": 69,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "division": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.9
+        },
+        "grossWeight": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.9
+        },
+        "industrySector": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.45
+        },
+        "isMarkedForDeletion": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.45
+        },
+        "lastChangeDate": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 5,
+          "unique_pct_of_non_null": 7.25
+        },
+        "lastChangeDateTime": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 24,
+          "unique_pct_of_non_null": 34.78
+        },
+        "netWeight": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.9
+        },
+        "product": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 69,
+          "unique_pct_of_non_null": 100.0
+        },
+        "productGroup": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.9
+        },
+        "productOldId": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 69,
+          "unique_pct_of_non_null": 100.0
+        },
+        "productType": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 4.35
+        },
+        "weightUnit": {
+          "non_null": 69,
+          "nulls": 0,
+          "total": 69,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.45
+        }
+      },
+      "candidate_keys": [
+        "product",
+        "productOldId"
+      ]
+    },
+    "sales_order_headers": {
+      "files": 1,
+      "rows": 100,
+      "parse_errors": 0,
+      "columns": {
+        "createdByUser": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.0
+        },
+        "creationDate": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.0
+        },
+        "customerPaymentTerms": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.0
+        },
+        "deliveryBlockReason": {
+          "non_null": 0,
+          "nulls": 100,
+          "total": 100,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "distributionChannel": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.0
+        },
+        "headerBillingBlockReason": {
+          "non_null": 0,
+          "nulls": 100,
+          "total": 100,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "incotermsClassification": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.0
+        },
+        "incotermsLocation1": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.0
+        },
+        "lastChangeDateTime": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 100,
+          "unique_pct_of_non_null": 100.0
+        },
+        "organizationDivision": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.0
+        },
+        "overallDeliveryStatus": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.0
+        },
+        "overallOrdReltdBillgStatus": {
+          "non_null": 0,
+          "nulls": 100,
+          "total": 100,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "overallSdDocReferenceStatus": {
+          "non_null": 0,
+          "nulls": 100,
+          "total": 100,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "pricingDate": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.0
+        },
+        "requestedDeliveryDate": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 2.0
+        },
+        "salesGroup": {
+          "non_null": 0,
+          "nulls": 100,
+          "total": 100,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "salesOffice": {
+          "non_null": 0,
+          "nulls": 100,
+          "total": 100,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "salesOrder": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 100,
+          "unique_pct_of_non_null": 100.0
+        },
+        "salesOrderType": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.0
+        },
+        "salesOrganization": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.0
+        },
+        "soldToParty": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 8.0
+        },
+        "totalCreditCheckStatus": {
+          "non_null": 0,
+          "nulls": 100,
+          "total": 100,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "totalNetAmount": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 63,
+          "unique_pct_of_non_null": 63.0
+        },
+        "transactionCurrency": {
+          "non_null": 100,
+          "nulls": 0,
+          "total": 100,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 1.0
+        }
+      },
+      "candidate_keys": [
+        "lastChangeDateTime",
+        "salesOrder"
+      ]
+    },
+    "sales_order_items": {
+      "files": 2,
+      "rows": 167,
+      "parse_errors": 0,
+      "columns": {
+        "itemBillingBlockReason": {
+          "non_null": 0,
+          "nulls": 167,
+          "total": 167,
+          "null_pct": 100.0,
+          "unique_count": 0,
+          "unique_pct_of_non_null": 0.0
+        },
+        "material": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 69,
+          "unique_pct_of_non_null": 41.32
+        },
+        "materialGroup": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.2
+        },
+        "netAmount": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 79,
+          "unique_pct_of_non_null": 47.31
+        },
+        "productionPlant": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 7,
+          "unique_pct_of_non_null": 4.19
+        },
+        "requestedQuantity": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 11,
+          "unique_pct_of_non_null": 6.59
+        },
+        "requestedQuantityUnit": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.6
+        },
+        "salesDocumentRjcnReason": {
+          "non_null": 30,
+          "nulls": 137,
+          "total": 167,
+          "null_pct": 82.04,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 3.33
+        },
+        "salesOrder": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 100,
+          "unique_pct_of_non_null": 59.88
+        },
+        "salesOrderItem": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 12,
+          "unique_pct_of_non_null": 7.19
+        },
+        "salesOrderItemCategory": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.6
+        },
+        "storageLocation": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 8,
+          "unique_pct_of_non_null": 4.79
+        },
+        "transactionCurrency": {
+          "non_null": 167,
+          "nulls": 0,
+          "total": 167,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.6
+        }
+      },
+      "candidate_keys": []
+    },
+    "sales_order_schedule_lines": {
+      "files": 2,
+      "rows": 179,
+      "parse_errors": 0,
+      "columns": {
+        "confdOrderQtyByMatlAvailCheck": {
+          "non_null": 179,
+          "nulls": 0,
+          "total": 179,
+          "null_pct": 0.0,
+          "unique_count": 12,
+          "unique_pct_of_non_null": 6.7
+        },
+        "confirmedDeliveryDate": {
+          "non_null": 167,
+          "nulls": 12,
+          "total": 179,
+          "null_pct": 6.7,
+          "unique_count": 3,
+          "unique_pct_of_non_null": 1.8
+        },
+        "orderQuantityUnit": {
+          "non_null": 179,
+          "nulls": 0,
+          "total": 179,
+          "null_pct": 0.0,
+          "unique_count": 1,
+          "unique_pct_of_non_null": 0.56
+        },
+        "salesOrder": {
+          "non_null": 179,
+          "nulls": 0,
+          "total": 179,
+          "null_pct": 0.0,
+          "unique_count": 100,
+          "unique_pct_of_non_null": 55.87
+        },
+        "salesOrderItem": {
+          "non_null": 179,
+          "nulls": 0,
+          "total": 179,
+          "null_pct": 0.0,
+          "unique_count": 12,
+          "unique_pct_of_non_null": 6.7
+        },
+        "scheduleLine": {
+          "non_null": 179,
+          "nulls": 0,
+          "total": 179,
+          "null_pct": 0.0,
+          "unique_count": 2,
+          "unique_pct_of_non_null": 1.12
+        }
+      },
+      "candidate_keys": []
+    }
+  },
+  "join_hints": [
+    {
+      "source_table": "sales_order_headers",
+      "source_column": "salesOrder",
+      "target_table": "sales_order_items",
+      "target_column": "salesOrder",
+      "relation": "header-to-item",
+      "source_rows": 100,
+      "target_rows": 167
+    },
+    {
+      "source_table": "sales_order_items",
+      "source_column": "salesOrder",
+      "target_table": "outbound_delivery_items",
+      "target_column": "referenceSdDocument",
+      "relation": "order-to-delivery",
+      "source_rows": 167,
+      "target_rows": 137
+    },
+    {
+      "source_table": "outbound_delivery_headers",
+      "source_column": "deliveryDocument",
+      "target_table": "outbound_delivery_items",
+      "target_column": "deliveryDocument",
+      "relation": "header-to-item",
+      "source_rows": 86,
+      "target_rows": 137
+    },
+    {
+      "source_table": "outbound_delivery_headers",
+      "source_column": "deliveryDocument",
+      "target_table": "billing_document_items",
+      "target_column": "referenceSdDocument",
+      "relation": "delivery-to-billing",
+      "source_rows": 86,
+      "target_rows": 245
+    },
+    {
+      "source_table": "billing_document_headers",
+      "source_column": "billingDocument",
+      "target_table": "billing_document_items",
+      "target_column": "billingDocument",
+      "relation": "header-to-item",
+      "source_rows": 163,
+      "target_rows": 245
+    },
+    {
+      "source_table": "billing_document_headers",
+      "source_column": "accountingDocument",
+      "target_table": "journal_entry_items_accounts_receivable",
+      "target_column": "accountingDocument",
+      "relation": "billing-to-journal",
+      "source_rows": 163,
+      "target_rows": 123
+    },
+    {
+      "source_table": "journal_entry_items_accounts_receivable",
+      "source_column": "clearingAccountingDocument",
+      "target_table": "payments_accounts_receivable",
+      "target_column": "accountingDocument",
+      "relation": "journal-to-payment",
+      "source_rows": 123,
+      "target_rows": 120
+    },
+    {
+      "source_table": "billing_document_headers",
+      "source_column": "soldToParty",
+      "target_table": "business_partners",
+      "target_column": "businessPartner",
+      "relation": "billing-to-customer",
+      "source_rows": 163,
+      "target_rows": 8
+    },
+    {
+      "source_table": "sales_order_headers",
+      "source_column": "soldToParty",
+      "target_table": "business_partners",
+      "target_column": "businessPartner",
+      "relation": "sales-to-customer",
+      "source_rows": 100,
+      "target_rows": 8
+    },
+    {
+      "source_table": "sales_order_items",
+      "source_column": "material",
+      "target_table": "products",
+      "target_column": "product",
+      "relation": "item-to-product",
+      "source_rows": 167,
+      "target_rows": 69
+    },
+    {
+      "source_table": "billing_document_items",
+      "source_column": "material",
+      "target_table": "products",
+      "target_column": "product",
+      "relation": "billing-item-to-product",
+      "source_rows": 245,
+      "target_rows": 69
+    },
+    {
+      "source_table": "sales_order_items",
+      "source_column": "productionPlant",
+      "target_table": "plants",
+      "target_column": "plant",
+      "relation": "item-to-plant",
+      "source_rows": 167,
+      "target_rows": 44
+    },
+    {
+      "source_table": "outbound_delivery_items",
+      "source_column": "plant",
+      "target_table": "plants",
+      "target_column": "plant",
+      "relation": "delivery-item-to-plant",
+      "source_rows": 137,
+      "target_rows": 44
+    }
+  ]
+}
