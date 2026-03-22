@@ -3,8 +3,10 @@
 This project builds a context graph over SAP Order-to-Cash style entities and provides a natural-language query assistant with dataset-grounded answers.
 
 ## Demo and Repository
-- Demo: `<add-deployment-link>`
-- Repository: `<add-public-github-link>`
+- Demo: `http://localhost:3000` (local run)
+- Repository: `https://github.com/Scarage1/Destiny1`
+
+> Note: Add your final public deployment URL before submission if hosting externally.
 
 ## Architecture
 
