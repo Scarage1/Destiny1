@@ -3,10 +3,32 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Type, TypeVar
 from pydantic import BaseModel
 
-from backend.app.models.graph_schema import (
-    Customer, SalesOrder, SalesOrderItem, Delivery,
-    DeliveryItem, Invoice, Payment, Product, JournalEntry, Node
-)
+try:
+    from backend.app.models.graph_schema import (
+        Customer,
+        SalesOrder,
+        SalesOrderItem,
+        Delivery,
+        DeliveryItem,
+        Invoice,
+        Payment,
+        Product,
+        JournalEntry,
+        Node,
+    )
+except ModuleNotFoundError:
+    from app.models.graph_schema import (
+        Customer,
+        SalesOrder,
+        SalesOrderItem,
+        Delivery,
+        DeliveryItem,
+        Invoice,
+        Payment,
+        Product,
+        JournalEntry,
+        Node,
+    )
 
 T = TypeVar("T", bound=Node)
 
