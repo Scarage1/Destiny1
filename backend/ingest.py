@@ -8,18 +8,32 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
-from database import get_db, init_schema, DB_PATH
-from ingestion.normalizer import (
-    normalize_customer,
-    normalize_delivery,
-    normalize_delivery_item,
-    normalize_invoice,
-    normalize_journal_entry,
-    normalize_payment,
-    normalize_product,
-    normalize_sales_order,
-    normalize_sales_order_item,
-)
+try:
+    from .database import get_db, init_schema, DB_PATH
+    from .ingestion.normalizer import (
+        normalize_customer,
+        normalize_delivery,
+        normalize_delivery_item,
+        normalize_invoice,
+        normalize_journal_entry,
+        normalize_payment,
+        normalize_product,
+        normalize_sales_order,
+        normalize_sales_order_item,
+    )
+except ImportError:
+    from database import get_db, init_schema, DB_PATH
+    from ingestion.normalizer import (
+        normalize_customer,
+        normalize_delivery,
+        normalize_delivery_item,
+        normalize_invoice,
+        normalize_journal_entry,
+        normalize_payment,
+        normalize_product,
+        normalize_sales_order,
+        normalize_sales_order_item,
+    )
 
 RAW_DATA_DIR = Path(__file__).parent.parent / "data" / "raw" / "sap-o2c-data"
 PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed"

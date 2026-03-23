@@ -10,13 +10,22 @@ from typing import Any
 
 import google.generativeai as genai
 
-from database import get_schema_description, execute_readonly_query
-from guardrails import (
-    check_domain_relevance,
-    validate_sql_safety,
-    sanitize_sql,
-    REJECTION_RESPONSE,
-)
+try:
+    from .database import get_schema_description, execute_readonly_query
+    from .guardrails import (
+        check_domain_relevance,
+        validate_sql_safety,
+        sanitize_sql,
+        REJECTION_RESPONSE,
+    )
+except ImportError:
+    from database import get_schema_description, execute_readonly_query
+    from guardrails import (
+        check_domain_relevance,
+        validate_sql_safety,
+        sanitize_sql,
+        REJECTION_RESPONSE,
+    )
 
 # Configure Gemini
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")

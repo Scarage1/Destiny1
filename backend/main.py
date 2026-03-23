@@ -9,14 +9,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Any
 
-from database import DB_PATH
-from graph_builder import (
-    get_graph_overview,
-    get_node_details,
-    get_node_neighbors,
-    build_graph,
-)
-from llm_service import process_query
+try:
+    from .database import DB_PATH
+    from .graph_builder import (
+        get_graph_overview,
+        get_node_details,
+        get_node_neighbors,
+        build_graph,
+    )
+    from .llm_service import process_query
+except ImportError:
+    from database import DB_PATH
+    from graph_builder import (
+        get_graph_overview,
+        get_node_details,
+        get_node_neighbors,
+        build_graph,
+    )
+    from llm_service import process_query
 
 
 @asynccontextmanager
