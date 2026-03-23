@@ -1,5 +1,7 @@
 # Final Signoff Checklist
 
+Requirement traceability: [docs/assignment-requirements-mapping.md](docs/assignment-requirements-mapping.md)
+
 ## Functional
 - [x] Graph build and exploration endpoints available
 - [x] NL query pipeline operational
