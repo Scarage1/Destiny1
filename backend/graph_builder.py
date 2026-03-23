@@ -4,7 +4,11 @@ Provides graph exploration APIs (nodes, neighbors, metadata).
 """
 
 import networkx as nx
-from database import get_db
+
+try:
+    from .database import get_db
+except ImportError:
+    from database import get_db
 
 # Singleton graph instance
 _graph: nx.DiGraph | None = None
