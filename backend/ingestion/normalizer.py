@@ -16,7 +16,7 @@ try:
         JournalEntry,
         Node,
     )
-except ModuleNotFoundError:
+except ImportError:
     from app.models.graph_schema import (
         Customer,
         SalesOrder,
