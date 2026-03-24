@@ -8,11 +8,8 @@ This project delivers a production-style BI assistant over SAP Order-to-Cash ent
 
 We intentionally avoid direct blind NL→SQL execution to reduce hallucination risk and increase reliability.
 
-## Demo and Repository
-- Demo: https://decent-prix-laid-customize.trycloudflare.com
-- Repository: `https://github.com/Scarage1/Destiny1`
-
-> Note: Current public demo is tunnel-based (temporary). Replace with a stable hosted URL for final submission.
+## Repository
+- `https://github.com/Scarage1/Destiny1`
 
 ## Architecture
 

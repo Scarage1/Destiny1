@@ -6,7 +6,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Any
 
 try:
@@ -78,7 +78,7 @@ app.add_middleware(
 
 
 class QueryRequest(BaseModel):
-    query: str
+    query: str = Field(..., min_length=1, max_length=2000)
     conversation_id: str | None = None
 
 
@@ -116,9 +116,9 @@ class NodeNeighbors(BaseModel):
 
 
 class SubgraphRequest(BaseModel):
-    seed_node_ids: list[str]
-    hops: int = 1
-    max_nodes: int = 200
+    seed_node_ids: list[str] = Field(..., min_length=1, max_length=50)
+    hops: int = Field(default=1, ge=0, le=3)
+    max_nodes: int = Field(default=200, ge=1, le=500)
 
 
 class SubgraphResponse(BaseModel):
@@ -210,12 +210,10 @@ def node_neighbors(node_id: str):
 
 @app.post("/api/graph/subgraph", response_model=SubgraphResponse)
 def graph_subgraph(request: SubgraphRequest):
-    hops = max(0, min(request.hops, 3))
-    max_nodes = max(1, min(request.max_nodes, 500))
     return get_subgraph(
         seed_node_ids=request.seed_node_ids,
-        hops=hops,
-        max_nodes=max_nodes,
+        hops=request.hops,
+        max_nodes=request.max_nodes,
     )
 
 
