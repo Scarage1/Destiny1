@@ -30,7 +30,7 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Run backend tests
-        run: python -m pytest backend/tests -q
+        run: python -m pytest backend/tests -q --cov=backend --cov-report=term-missing --cov-fail-under=70
 
   frontend:
     runs-on: ubuntu-latest
