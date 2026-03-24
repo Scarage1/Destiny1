@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from backend.llm_service import process_query
+from backend.agents.orchestrator import process_query
 from backend.guardrails import REJECTION_RESPONSE
 
 

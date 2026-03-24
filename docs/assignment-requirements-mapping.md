@@ -15,8 +15,7 @@ This document maps the delivered implementation to the original assignment crite
 **Status:** Implemented
 
 **Evidence:**
-- Interactive graph UI with expansion and node click handling: [frontend/src/App.jsx](frontend/src/App.jsx)
-- Graph component support files: [frontend/src/components/GraphCanvas.jsx](frontend/src/components/GraphCanvas.jsx)
+- Interactive graph UI with expansion and node click handling: [frontend/src/pages/Workspace.jsx](frontend/src/pages/Workspace.jsx)
 - Graph APIs for overview/node/neighbors: [backend/main.py](backend/main.py)
 
 ## 3) Conversational Query Interface
@@ -25,7 +24,7 @@ This document maps the delivered implementation to the original assignment crite
 **Evidence:**
 - NL query endpoint: [backend/main.py](backend/main.py)
 - NL to SQL + execution + grounded synthesis: [backend/llm_service.py](backend/llm_service.py)
-- Frontend chat query flow: [frontend/src/App.jsx](frontend/src/App.jsx)
+- Frontend chat query flow: [frontend/src/pages/Workspace.jsx](frontend/src/pages/Workspace.jsx)
 
 ## 4) Required Example Query Classes
 **Status:** Implemented and tested

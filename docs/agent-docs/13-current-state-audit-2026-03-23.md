@@ -17,7 +17,7 @@ Provide a truthful snapshot of codebase + docs alignment against tickets T1-T12,
 | T8 Query execution normalization | Done | trace_id/result_columns contract enforced in [backend/llm_service.py](backend/llm_service.py) and verified by tests |
 | T9 Grounded answer synthesis | Done | deterministic no-data grounding enforced in [backend/llm_service.py](backend/llm_service.py) with unit tests |
 | T10 API endpoints | Done | API contract suite in [backend/tests/integration/test_api_contracts.py](backend/tests/integration/test_api_contracts.py), route conflict fixed in [backend/main.py](backend/main.py) |
-| T11 Frontend core UX | Done | graph/chat/highlight in [frontend/src/App.jsx](frontend/src/App.jsx), tests in [frontend/src/tests/api.test.js](frontend/src/tests/api.test.js) |
+| T11 Frontend core UX | Done | graph/chat/highlight in [frontend/src/pages/Workspace.jsx](frontend/src/pages/Workspace.jsx), tests in [frontend/src/tests/api.test.js](frontend/src/tests/api.test.js) |
 | T12 Docs/demo/submission | Review | root [README.md](README.md), CI [/.github/workflows/ci.yml](.github/workflows/ci.yml), issue templates, and delivery docs are complete; demo/repo link fill and transcript artifact upload pending |
 
 ## Critical Misalignments

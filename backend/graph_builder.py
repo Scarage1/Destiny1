@@ -442,77 +442,164 @@ def get_node_neighbors(node_id: str) -> dict | None:
 
 
 def get_relationship_diagnostics() -> dict:
-        """Return orphan/missing-link diagnostics for relationship-critical joins.
+    """Return orphan/missing-link diagnostics for relationship-critical joins.
 
-        Diagnostics are computed from SQLite source tables and indicate rows that
-        cannot be linked due to missing source/target references.
-        """
-        with get_db() as conn:
-                checks = {
-                        "customer_to_sales_order_missing_customer": """
-                                SELECT COUNT(*) AS c
-                                FROM sales_order_headers so
-                                LEFT JOIN business_partners bp
-                                    ON bp.businessPartner = so.soldToParty
-                                WHERE so.soldToParty IS NOT NULL
-                                    AND bp.businessPartner IS NULL
-                        """,
-                        "sales_order_item_missing_sales_order": """
-                                SELECT COUNT(*) AS c
-                                FROM sales_order_items soi
-                                LEFT JOIN sales_order_headers so
-                                    ON so.salesOrder = soi.salesOrder
-                                WHERE so.salesOrder IS NULL
-                        """,
-                        "sales_order_item_missing_product": """
-                                SELECT COUNT(*) AS c
-                                FROM sales_order_items soi
-                                LEFT JOIN products p
-                                    ON p.product = soi.material
-                                WHERE soi.material IS NOT NULL
-                                    AND p.product IS NULL
-                        """,
-                        "delivery_item_missing_sales_order": """
-                                SELECT COUNT(*) AS c
-                                FROM outbound_delivery_items odi
-                                LEFT JOIN sales_order_headers so
-                                    ON so.salesOrder = odi.referenceSdDocument
-                                WHERE odi.referenceSdDocument IS NOT NULL
-                                    AND so.salesOrder IS NULL
-                        """,
-                        "billing_item_missing_delivery": """
-                                SELECT COUNT(*) AS c
-                                FROM billing_document_items bdi
-                                LEFT JOIN outbound_delivery_headers odh
-                                    ON odh.deliveryDocument = bdi.referenceSdDocument
-                                WHERE bdi.referenceSdDocument IS NOT NULL
-                                    AND odh.deliveryDocument IS NULL
-                        """,
-                        "billing_header_missing_journal_entry": """
-                                SELECT COUNT(*) AS c
-                                FROM billing_document_headers bdh
-                                LEFT JOIN journal_entry_items je
-                                    ON je.accountingDocument = bdh.accountingDocument
-                                WHERE bdh.accountingDocument IS NOT NULL
-                                    AND je.accountingDocument IS NULL
-                        """,
-                        "journal_entry_missing_payment": """
-                                SELECT COUNT(*) AS c
-                                FROM journal_entry_items je
-                                LEFT JOIN payments p
-                                    ON p.accountingDocument = je.clearingAccountingDocument
-                                WHERE je.clearingAccountingDocument IS NOT NULL
-                                    AND p.accountingDocument IS NULL
-                        """,
-                }
+    Diagnostics are computed from SQLite source tables and indicate rows that
+    cannot be linked due to missing source/target references.
+    """
+    with get_db() as conn:
+        checks = {
+            "customer_to_sales_order_missing_customer": """
+                SELECT COUNT(*) AS c
+                FROM sales_order_headers so
+                LEFT JOIN business_partners bp
+                    ON bp.businessPartner = so.soldToParty
+                WHERE so.soldToParty IS NOT NULL
+                    AND bp.businessPartner IS NULL
+            """,
+            "sales_order_item_missing_sales_order": """
+                SELECT COUNT(*) AS c
+                FROM sales_order_items soi
+                LEFT JOIN sales_order_headers so
+                    ON so.salesOrder = soi.salesOrder
+                WHERE so.salesOrder IS NULL
+            """,
+            "sales_order_item_missing_product": """
+                SELECT COUNT(*) AS c
+                FROM sales_order_items soi
+                LEFT JOIN products p
+                    ON p.product = soi.material
+                WHERE soi.material IS NOT NULL
+                    AND p.product IS NULL
+            """,
+            "delivery_item_missing_sales_order": """
+                SELECT COUNT(*) AS c
+                FROM outbound_delivery_items odi
+                LEFT JOIN sales_order_headers so
+                    ON so.salesOrder = odi.referenceSdDocument
+                WHERE odi.referenceSdDocument IS NOT NULL
+                    AND so.salesOrder IS NULL
+            """,
+            "billing_item_missing_delivery": """
+                SELECT COUNT(*) AS c
+                FROM billing_document_items bdi
+                LEFT JOIN outbound_delivery_headers odh
+                    ON odh.deliveryDocument = bdi.referenceSdDocument
+                WHERE bdi.referenceSdDocument IS NOT NULL
+                    AND odh.deliveryDocument IS NULL
+            """,
+            "billing_header_missing_journal_entry": """
+                SELECT COUNT(*) AS c
+                FROM billing_document_headers bdh
+                LEFT JOIN journal_entry_items je
+                    ON je.accountingDocument = bdh.accountingDocument
+                WHERE bdh.accountingDocument IS NOT NULL
+                    AND je.accountingDocument IS NULL
+            """,
+            "journal_entry_missing_payment": """
+                SELECT COUNT(*) AS c
+                FROM journal_entry_items je
+                LEFT JOIN payments p
+                    ON p.accountingDocument = je.clearingAccountingDocument
+                WHERE je.clearingAccountingDocument IS NOT NULL
+                    AND p.accountingDocument IS NULL
+            """,
+        }
 
-                orphan_counts = {
-                        name: int(conn.execute(sql).fetchone()["c"])
-                        for name, sql in checks.items()
-                }
+        orphan_counts = {
+            name: int(conn.execute(sql).fetchone()["c"])
+            for name, sql in checks.items()
+        }
 
-                total_orphans = sum(orphan_counts.values())
-                return {
-                        "orphan_counts": orphan_counts,
-                        "total_orphan_links": total_orphans,
+        total_orphans = sum(orphan_counts.values())
+        return {
+            "orphan_counts": orphan_counts,
+            "total_orphan_links": total_orphans,
+        }
+
+
+def get_subgraph(seed_node_ids: list[str], hops: int = 1, max_nodes: int = 200) -> dict:
+    """Return a focused subgraph around seed nodes within N hops."""
+    G = get_graph()
+    if not seed_node_ids:
+        return {
+            "nodes": [],
+            "edges": [],
+            "stats": {
+                "seed_count": 0,
+                "resolved_seed_count": 0,
+                "hops": hops,
+                "max_nodes": max_nodes,
+                "total_nodes": 0,
+                "total_edges": 0,
+                "trimmed": False,
+            },
+        }
+
+    valid_seeds = [nid for nid in seed_node_ids if G.has_node(nid)]
+    if not valid_seeds:
+        return {
+            "nodes": [],
+            "edges": [],
+            "stats": {
+                "seed_count": len(seed_node_ids),
+                "resolved_seed_count": 0,
+                "hops": hops,
+                "max_nodes": max_nodes,
+                "total_nodes": 0,
+                "total_edges": 0,
+                "trimmed": False,
+            },
+        }
+
+    undirected = G.to_undirected()
+    distance_map: dict[str, int] = {}
+
+    for seed in valid_seeds:
+        lengths = nx.single_source_shortest_path_length(
+            undirected,
+            seed,
+            cutoff=max(0, hops),
+        )
+        for node_id, dist in lengths.items():
+            existing = distance_map.get(node_id)
+            if existing is None or dist < existing:
+                distance_map[node_id] = dist
+
+    ordered_nodes = sorted(distance_map.items(), key=lambda x: (x[1], x[0]))
+    trimmed = len(ordered_nodes) > max_nodes
+    selected_ids = {node_id for node_id, _ in ordered_nodes[:max_nodes]}
+
+    nodes = [
+        {
+            "id": node_id,
+            "type": G.nodes[node_id].get("type", "Unknown"),
+            "label": G.nodes[node_id].get("label", node_id),
+        }
+        for node_id in selected_ids
+    ]
+
+    edges = []
+    for src, tgt, data in G.edges(data=True):
+        if src in selected_ids and tgt in selected_ids:
+            edges.append(
+                {
+                    "source": src,
+                    "target": tgt,
+                    "relationship": data.get("relationship", "RELATED"),
                 }
+            )
+
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "stats": {
+            "seed_count": len(seed_node_ids),
+            "resolved_seed_count": len(valid_seeds),
+            "hops": hops,
+            "max_nodes": max_nodes,
+            "total_nodes": len(nodes),
+            "total_edges": len(edges),
+            "trimmed": trimmed,
+        },
+    }
