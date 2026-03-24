@@ -34,6 +34,8 @@ pnpm-debug.log*
 data/raw/*
 !data/raw/.gitkeep
 data/o2c.db
+data/o2c.db-wal
+data/o2c.db-shm
 o2c.db
 
 # Logs

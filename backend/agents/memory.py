@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.agents.runtime_config import get_runtime_config
+from .runtime_config import get_runtime_config
 
 CONVERSATION_MEMORY: dict[str, dict[str, Any]] = {}
 _MEMORY_MAX_CONVERSATIONS = get_runtime_config().memory_max_conversations
