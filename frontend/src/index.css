@@ -2382,3 +2382,207 @@ details[open] .results-section__title::before {
   border-color: rgba(248, 113, 113, 0.4);
   background: rgba(248, 113, 113, 0.08);
 }
+
+/* ═══════════════════════════════════════════════
+   QUERY HISTORY PANEL  (T10)
+   ═══════════════════════════════════════════════ */
+
+.hpanel__trigger {
+  position: relative;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 980px;
+  padding: 4px 10px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  line-height: 1;
+}
+
+.hpanel__trigger:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-subtle);
+}
+
+.hpanel__trigger-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 980px;
+  padding: 1px 4px;
+  min-width: 14px;
+  text-align: center;
+  font-family: var(--font);
+}
+
+.hpanel {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 300px;
+  height: 100vh;
+  background: var(--bg-elevated);
+  border-left: 1px solid var(--border);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+}
+
+.hpanel--open {
+  right: 0;
+}
+
+.hpanel__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 199;
+  animation: fadeIn 0.2s ease;
+}
+
+.hpanel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.hpanel__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hpanel__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hpanel__clear {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.hpanel__clear:hover {
+  background: var(--bg-hover);
+  color: var(--error);
+}
+
+.hpanel__close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px;
+  font-family: var(--font);
+}
+
+.hpanel__close:hover { color: var(--text); }
+
+.hpanel__list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hpanel__empty {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  margin-top: 40px;
+}
+
+.hpanel__item {
+  width: 100%;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) - 2px);
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.hpanel__item:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+
+.hpanel__item--error {
+  opacity: 0.6;
+}
+
+.hpanel__item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.hpanel__item-query {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.hpanel__item-time {
+  font-size: 10px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.hpanel__badge {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 980px;
+  border: 1px solid transparent;
+}
+
+.hpanel__badge--trace   { background: rgba(139,92,246,0.12); color: #8b5cf6; border-color: rgba(139,92,246,0.3); }
+.hpanel__badge--anomaly { background: rgba(248,113,113,0.12); color: #f87171; border-color: rgba(248,113,113,0.3); }
+.hpanel__badge--status  { background: rgba(52,211,153,0.12);  color: #34d399; border-color: rgba(52,211,153,0.3); }
+.hpanel__badge--analyze { background: rgba(91,141,245,0.12);  color: #5b8df5; border-color: rgba(91,141,245,0.3); }
+.hpanel__badge--compare { background: rgba(251,191,36,0.12);  color: #d97706; border-color: rgba(251,191,36,0.3); }
+
+[data-theme="dark"] .hpanel {
+  background: var(--bg-elevated);
+  border-left-color: var(--border);
+}
+
+@media (max-width: 768px) {
+  .hpanel { width: 85vw; right: -90vw; }
+  .hpanel--open { right: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}

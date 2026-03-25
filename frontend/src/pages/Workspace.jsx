@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import QueryHistoryPanel, { addToHistory } from '../components/QueryHistoryPanel'
 import { Link } from 'react-router-dom'
 import ForceGraph2D from 'react-force-graph-2d'
 import { fetchGraphOverview, fetchNodeDetails, fetchNodeNeighbors, askQuery } from '../api'
@@ -278,6 +279,10 @@ export default function Workspace() {
     if (inputRef.current) {
       inputRef.current.style.height = 'auto'
     }
+    if (result?.intent || result?.status) {
+      addToHistory({ query: query.trim(), intent: result?.intent || result?.plan?.intent || 'analyze', status: result?.status || 'success' })
+      window.dispatchEvent(new CustomEvent('o2c_history_update'))
+    }
     setMessages(prev => [...prev, { role: 'user', text: q }])
     setIsQuerying(true)
     try {
@@ -395,6 +400,7 @@ export default function Workspace() {
               ⚠️ {anomalyCount}
             </button>
           )}
+          <QueryHistoryPanel onSelect={(q) => { setMobileTab('chat'); handleSend(q) }} />
           <button
             type="button"
             className="dark-toggle"

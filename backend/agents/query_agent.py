@@ -959,6 +959,91 @@ GROUP BY bdi.material
 ORDER BY billing_document_count DESC, product ASC
 LIMIT 10
 """.strip()
+        if anomaly_sub_type == "incomplete_by_region":
+            return f"""
+SELECT
+    COALESCE(soh.shippingCountry, soh.salesOrganization, 'Unknown') AS region,
+    COUNT(DISTINCT soh.salesOrder) AS total_orders,
+    COUNT(DISTINCT CASE WHEN odh.deliveryDocument IS NULL THEN soh.salesOrder END) AS missing_delivery,
+    COUNT(DISTINCT CASE WHEN bdh.billingDocument IS NULL THEN soh.salesOrder END) AS missing_billing,
+    COUNT(DISTINCT CASE WHEN p.accountingDocument IS NULL THEN soh.salesOrder END) AS missing_payment,
+    ROUND(
+        100.0 * COUNT(DISTINCT CASE
+            WHEN odh.deliveryDocument IS NULL
+              OR bdh.billingDocument IS NULL
+              OR p.accountingDocument IS NULL THEN soh.salesOrder END)
+        / NULLIF(COUNT(DISTINCT soh.salesOrder), 0), 1
+    ) AS incomplete_pct
+FROM sales_order_headers soh
+LEFT JOIN outbound_delivery_items odi ON odi.referenceSdDocument = soh.salesOrder
+LEFT JOIN outbound_delivery_headers odh ON odh.deliveryDocument = odi.deliveryDocument
+LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+LEFT JOIN billing_document_headers bdh ON bdh.billingDocument = bdi.billingDocument
+LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+GROUP BY region
+ORDER BY incomplete_pct DESC, total_orders DESC
+LIMIT {limit}
+""".strip()
+
+        if anomaly_sub_type == "high_value_unbi_delivered":
+            return f"""
+SELECT
+    odh.deliveryDocument,
+    odi.referenceSdDocument AS salesOrder,
+    odh.actualGoodsMovementDate AS goodsMovementDate,
+    COALESCE(bp.businessPartnerName, soh.soldToParty) AS customer,
+    ROUND(soh.totalNetAmount, 2) AS order_net_amount,
+    soh.transactionCurrency
+FROM outbound_delivery_headers odh
+JOIN outbound_delivery_items odi ON odi.deliveryDocument = odh.deliveryDocument
+JOIN sales_order_headers soh ON soh.salesOrder = odi.referenceSdDocument
+LEFT JOIN business_partners bp ON bp.customer = soh.soldToParty
+LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odh.deliveryDocument
+WHERE bdi.billingDocument IS NULL
+  AND odh.actualGoodsMovementDate IS NOT NULL
+  AND soh.totalNetAmount IS NOT NULL
+ORDER BY soh.totalNetAmount DESC
+LIMIT {limit}
+""".strip()
+
+        if anomaly_sub_type == "multi_delivery_orders":
+            return f"""
+SELECT
+    odi.referenceSdDocument AS salesOrder,
+    COUNT(DISTINCT odi.deliveryDocument) AS delivery_count,
+    MIN(odh.creationDate) AS first_delivery_date,
+    MAX(odh.creationDate) AS last_delivery_date,
+    COALESCE(bp.businessPartnerName, soh.soldToParty) AS customer
+FROM outbound_delivery_items odi
+LEFT JOIN outbound_delivery_headers odh ON odh.deliveryDocument = odi.deliveryDocument
+LEFT JOIN sales_order_headers soh ON soh.salesOrder = odi.referenceSdDocument
+LEFT JOIN business_partners bp ON bp.customer = soh.soldToParty
+WHERE odi.referenceSdDocument IS NOT NULL
+GROUP BY odi.referenceSdDocument
+HAVING COUNT(DISTINCT odi.deliveryDocument) > 1
+ORDER BY delivery_count DESC
+LIMIT {limit}
+""".strip()
+
+        if anomaly_sub_type == "multi_journal_billing":
+            return f"""
+SELECT
+    bdh.billingDocument,
+    bdh.billingDocumentDate,
+    ROUND(bdh.totalNetAmount, 2) AS net_amount,
+    bdh.soldToParty AS customer,
+    COUNT(DISTINCT je.accountingDocument) AS journal_count,
+    GROUP_CONCAT(DISTINCT je.accountingDocument) AS journal_entries
+FROM billing_document_headers bdh
+LEFT JOIN journal_entry_items je ON je.accountingDocument = bdh.accountingDocument
+WHERE je.accountingDocument IS NOT NULL
+GROUP BY bdh.billingDocument
+HAVING COUNT(DISTINCT je.accountingDocument) > 1
+ORDER BY journal_count DESC, net_amount DESC
+LIMIT {limit}
+""".strip()
+
+
 
     # ── T6: Compare analytics — region / period ─────────────────────────────────
 
