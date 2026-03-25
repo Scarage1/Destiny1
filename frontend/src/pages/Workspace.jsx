@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import QueryHistoryPanel, { addToHistory } from '../components/QueryHistoryPanel'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import ForceGraph2D from 'react-force-graph-2d'
 import { fetchGraphOverview, fetchNodeDetails, fetchNodeNeighbors, askQuery } from '../api'
 import QueryMessage from '../components/Message'
@@ -92,6 +92,18 @@ export default function Workspace() {
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem('o2c_dark_mode') === '1' } catch { return false }
   })
+
+  // W3-1: Auto-send queries coming from landing page sample chips (?q=...)
+  const [searchParams, setSearchParams] = useSearchParams()
+  useEffect(() => {
+    const presetQ = searchParams.get('q')
+    if (presetQ) {
+      setSearchParams({}, { replace: true }) // clear param from URL
+      // Delay slightly so graph/session restore finishes first
+      setTimeout(() => handleSend(presetQ), 600)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light')

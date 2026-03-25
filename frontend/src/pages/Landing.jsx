@@ -38,6 +38,22 @@ export default function Landing() {
           <div className="hero__shortcut">
             Press <kbd>/</kbd> in workspace to start querying
           </div>
+
+          {/* W3-1: Sample query chips — show users exactly what they can ask */}
+          <div className="hero__samples">
+            <span className="hero__samples-label">Try asking:</span>
+            <div className="hero__sample-chips">
+              {[
+                'Trace the full lifecycle of Sales Order 5001',
+                'Which deliveries were never billed?',
+                'Top 5 customers by net amount',
+              ].map(q => (
+                <Link key={q} to={`/workspace?q=${encodeURIComponent(q)}`} className="hero__sample-chip">
+                  {q}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

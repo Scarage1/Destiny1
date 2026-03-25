@@ -247,8 +247,26 @@ const Message = React.memo(function Message({ msg, onSend, advancedMode = false,
 
         {showSql && msg.sql && (
           <div className="message__sql">
-            <div className="message__sql-label">SQL</div>
-            {msg.sql}
+            {/* W3-2: Plain-language summary for business users */}
+            <div className="message__sql-summary">
+              {(() => {
+                const { intent, entity_type, entity_id } = msg.plan || {}
+                if (intent === 'trace_flow')
+                  return `Traced full O2C lifecycle for ${entity_type || 'document'} ${entity_id || ''}`
+                if (intent === 'detect_anomaly')
+                  return `Scanned for anomalies in ${entity_type || 'O2C'} records`
+                if (intent === 'compare_analytics')
+                  return `Compared performance across ${entity_type || 'groups'}`
+                if (intent === 'status_lookup')
+                  return `Looked up current status of ${entity_type || 'document'} ${entity_id || ''}`
+                return `Analyzed ${entity_type || 'O2C'} data across ${msg.totalResults ?? 0} record(s)`
+              })()}
+            </div>
+            {/* Developer SQL — collapsed by default */}
+            <details className="message__sql-details">
+              <summary className="message__sql-dev-toggle">Developer SQL</summary>
+              <pre className="message__sql-code">{msg.sql}</pre>
+            </details>
           </div>
         )}
 
