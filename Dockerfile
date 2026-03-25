@@ -35,18 +35,6 @@ RUN mkdir -p /app/data && chown -R app:app /app
 
 USER app
 
-# Azure App Service expects the port from the PORT env var (default 8000)
-ENV PORT=8000
-EXPOSE ${PORT}
-
-# Startup: auto-ingest on first boot if DB is missing, then serve the app.
-CMD ["sh", "-c", "\
-  if [ ! -f /app/data/o2c.db ]; then \
-    echo '[startup] o2c.db not found — running ingestion...' && \
-    cd /app && python -m backend.ingest && \
-    echo '[startup] Ingestion complete.'; \
-  else \
-    echo '[startup] o2c.db exists — skipping ingestion.'; \
-  fi && \
-  uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2 \
-"]
+# Azure App Service expects the port from the PORT env var (default 8000).
+# Start uvicorn immediately so health checks pass; ingestion runs in the background.
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]

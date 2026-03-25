@@ -49,11 +49,31 @@ except ImportError:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Run on startup: ensure DB exists, build graph, optionally serve frontend."""
+    """Run on startup: auto-ingest if needed, build graph, start serving."""
+    import threading
+
     adapter = get_db_adapter()
 
     if not adapter.db_exists():
-        logger.warning("Database source not found. Run ingestion/setup first.")
+        # DB missing — run ingestion in a background thread so uvicorn starts
+        # immediately and Azure health checks pass. Data becomes available ~30s later.
+        logger.info("[startup] Database not found — starting background ingestion...")
+
+        def _run_ingest() -> None:
+            try:
+                try:
+                    from .ingest import run_ingestion  # type: ignore[attr-defined]
+                except ImportError:
+                    from ingest import run_ingestion  # type: ignore[attr-defined]
+                run_ingestion()
+                logger.info("[startup] Background ingestion complete — rebuilding graph.")
+                build_graph()
+                logger.info("[startup] Graph ready.")
+            except Exception:
+                logger.exception("[startup] Background ingestion failed.")
+
+        t = threading.Thread(target=_run_ingest, daemon=True, name="bg-ingest")
+        t.start()
     elif adapter.name != "sqlite":
         logger.info("Graph build skipped for backend '%s' (SQLite expected).", adapter.name)
     else:
