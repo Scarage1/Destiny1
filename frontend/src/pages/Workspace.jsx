@@ -499,18 +499,16 @@ export default function Workspace() {
           </div>
         </div>
 
-        {/* T18: Dashboard KPI cards — loaded from /api/dashboard on mount */}
+        {/* T18: Compact stat strip — no icons, single row */}
         {dashboardCards.length > 0 && (
-          <div className="dashboard-cards">
+          <div className="stat-strip">
             {dashboardCards.map(card => (
               <div
                 key={card.id}
-                className={`dashboard-card${card.severity === 'warning' ? ' dashboard-card--warning' : card.severity === 'critical' ? ' dashboard-card--critical' : ''}`}
+                className={`stat-strip__item${card.severity === 'warning' ? ' stat-strip__item--warning' : card.severity === 'critical' ? ' stat-strip__item--critical' : ''}`}
               >
-                <div className="dashboard-card__icon">{card.icon}</div>
-                <div className="dashboard-card__value">{card.value}</div>
-                <div className="dashboard-card__label">{card.label}</div>
-                {card.detail && <div className="dashboard-card__detail">{card.detail}</div>}
+                <span className="stat-strip__value">{card.value}</span>
+                <span className="stat-strip__label">{card.label}</span>
               </div>
             ))}
           </div>
@@ -527,7 +525,6 @@ export default function Workspace() {
               <div className="chat__examples">
                 {EXAMPLE_QUERIES.map((q, i) => (
                   <button type="button" key={i} className="chat__example" onClick={() => handleSend(q.text)}>
-                    <span className="chat__example-icon">{q.icon}</span>
                     {q.text}
                   </button>
                 ))}

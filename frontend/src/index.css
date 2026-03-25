@@ -2586,3 +2586,86 @@ details[open] .results-section__title::before {
 @keyframes fadeIn {
   from { opacity: 0; } to { opacity: 1; }
 }
+
+/* ═══════════════════════════════════════════════
+   COMPACT STAT STRIP  (replaces dashboard-cards)
+   ═══════════════════════════════════════════════ */
+
+.stat-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  background: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.stat-strip__item {
+  flex: 1 1 0;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 10px;
+  background: var(--bg-elevated);
+  transition: background var(--transition);
+  cursor: default;
+}
+
+.stat-strip__item:hover {
+  background: var(--bg-hover);
+}
+
+.stat-strip__item--warning {
+  border-top: 2px solid #d97706;
+}
+
+.stat-strip__item--critical {
+  border-top: 2px solid var(--error);
+}
+
+.stat-strip__value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.stat-strip__label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .stat-strip__item {
+  background: var(--bg-elevated);
+}
+
+/* Example chips — text-only, no icon */
+.chat__example {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.chat__example-icon {
+  display: none;  /* permanently hidden from new minimalist style */
+}
+
+/* Hide legacy dashboard-card styles to avoid flash */
+.dashboard-cards { display: none !important; }
+
+@media (max-width: 768px) {
+  .stat-strip { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .stat-strip__item { min-width: 70px; padding: 6px 8px; }
+  .stat-strip__value { font-size: 14px; }
+}

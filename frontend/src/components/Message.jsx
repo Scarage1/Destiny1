@@ -130,7 +130,7 @@ function SqlExplainer({ plan, sql }) {
   )
 }
 
-export default function Message({ msg, onSend, advancedMode = false, onCopy }) {
+const Message = React.memo(function Message({ msg, onSend, advancedMode = false, onCopy }) {
   const [showSql, setShowSql]       = useState(false)
   const [copied, setCopied]         = useState(false)
   const [showDetails, setShowDetails] = useState(false)
@@ -273,4 +273,6 @@ export default function Message({ msg, onSend, advancedMode = false, onCopy }) {
       </div>
     </div>
   )
-}
+})
+
+export default Message
