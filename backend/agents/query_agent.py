@@ -960,6 +960,58 @@ ORDER BY billing_document_count DESC, product ASC
 LIMIT 10
 """.strip()
 
+    # ── T6: Compare analytics — region / period ─────────────────────────────────
+
+    if intent == "compare_analytics" and group_by == "region":
+        # Compare incomplete O2C transactions by shipping country/region
+        return f"""
+SELECT
+    COALESCE(soh.shippingCountry, soh.salesOrganization, 'Unknown') AS region,
+    COUNT(DISTINCT soh.salesOrder) AS total_orders,
+    COUNT(DISTINCT CASE WHEN odh.deliveryDocument IS NOT NULL THEN soh.salesOrder END) AS delivered,
+    COUNT(DISTINCT CASE WHEN bdh.billingDocument IS NOT NULL THEN soh.salesOrder END) AS billed,
+    COUNT(DISTINCT CASE WHEN p.accountingDocument IS NOT NULL THEN soh.salesOrder END) AS paid,
+    COUNT(DISTINCT CASE WHEN odh.deliveryDocument IS NULL THEN soh.salesOrder END) AS missing_delivery,
+    COUNT(DISTINCT CASE WHEN bdh.billingDocument IS NULL THEN soh.salesOrder END) AS missing_billing,
+    ROUND(
+        100.0 * COUNT(DISTINCT CASE WHEN p.accountingDocument IS NOT NULL THEN soh.salesOrder END)
+        / NULLIF(COUNT(DISTINCT soh.salesOrder), 0), 1
+    ) AS completion_pct
+FROM sales_order_headers soh
+LEFT JOIN outbound_delivery_items odi ON odi.referenceSdDocument = soh.salesOrder
+LEFT JOIN outbound_delivery_headers odh ON odh.deliveryDocument = odi.deliveryDocument
+LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+LEFT JOIN billing_document_headers bdh ON bdh.billingDocument = bdi.billingDocument
+LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+GROUP BY region
+ORDER BY missing_delivery DESC, total_orders DESC
+LIMIT {limit}
+""".strip()
+
+    if intent == "compare_analytics" and group_by == "period":
+        # Monthly comparison of order value + completion rate
+        return f"""
+SELECT
+    strftime('%Y-%m', soh.creationDate) AS month,
+    COUNT(DISTINCT soh.salesOrder) AS orders,
+    ROUND(SUM(soh.totalNetAmount), 2) AS order_value,
+    COUNT(DISTINCT CASE WHEN p.accountingDocument IS NOT NULL THEN soh.salesOrder END) AS completed,
+    ROUND(
+        100.0 * COUNT(DISTINCT CASE WHEN p.accountingDocument IS NOT NULL THEN soh.salesOrder END)
+        / NULLIF(COUNT(DISTINCT soh.salesOrder), 0), 1
+    ) AS completion_pct
+FROM sales_order_headers soh
+LEFT JOIN outbound_delivery_items odi ON odi.referenceSdDocument = soh.salesOrder
+LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+LEFT JOIN billing_document_headers bdh ON bdh.billingDocument = bdi.billingDocument
+LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+WHERE soh.creationDate IS NOT NULL
+GROUP BY month
+ORDER BY month DESC
+LIMIT {limit}
+""".strip()
+
+
     return None
 
 

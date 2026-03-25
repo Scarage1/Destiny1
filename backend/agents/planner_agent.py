@@ -259,6 +259,10 @@ def _heuristic_plan(user_query: str, context: dict[str, Any]) -> dict[str, Any]:
     )
     _orphan = "orphan" in q or "unlinked" in q or "no connection" in q
     _avg_steps = "average" in q and ("step" in q or "stage" in q or "cycle" in q)
+    _compare = ("compare" in q or "vs" in q or "vs." in q or "versus" in q
+                or ("difference" in q and ("between" in q or "across" in q)))
+    _region = ("region" in q or "country" in q or "area" in q or "territory" in q)
+    _period_compare = _compare and any(w in q for w in ["month", "year", "quarter", "q1", "q2", "q3", "q4"])
     _bottleneck = "bottleneck" in q or "delay" in q and "pipeline" in q
     _longest_chain = "longest" in q and "chain" in q
     _cycles_detect = "cycle" in q and ("detect" in q or "redundant" in q or "loop" in q)
@@ -314,6 +318,10 @@ def _heuristic_plan(user_query: str, context: dict[str, Any]) -> dict[str, Any]:
         intent = "analyze"
         operation = "max"
         anomaly_sub_type = "node_connectivity"
+    elif _compare and (_region or _period_compare):
+        # T6: Compare intent has priority over region-anomaly detection
+        intent = "compare_analytics"
+        operation = "compare"
     elif _incomplete_region:
         intent = "detect_anomaly"
         operation = "detect"
@@ -351,6 +359,12 @@ def _heuristic_plan(user_query: str, context: dict[str, Any]) -> dict[str, Any]:
     elif "status" in q:
         intent = "status_lookup"
         operation = "list"
+
+    # T6: Compare-analytics group_by — must run AFTER intent is set in elif chain
+    if intent == "compare_analytics" and _region:
+        group_by = "region"
+    elif intent == "compare_analytics" and _period_compare:
+        group_by = "period"
 
     entity_type = None
     entity_id = None
@@ -561,7 +575,7 @@ def plan(
 
     prompt = f"""You are a planning agent for SAP O2C analytics.
 Return ONLY one compact JSON object with keys:
-- intent: one of [trace_flow, detect_anomaly, status_lookup, analyze]
+- intent: one of [trace_flow, detect_anomaly, status_lookup, analyze, compare_analytics]
 - entity_type: one of [invoice, sales_order, delivery, payment, customer, product, null]
 - entity_id: string or null
 - metric: one of [net_amount, count, quantity, revenue, billing_documents, billing_document_count, delivery_count, null]
