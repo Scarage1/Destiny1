@@ -33,8 +33,10 @@ function writeHistory(entries: HistoryEntry[]): void {
   } catch { /* storage full — ignore */ }
 }
 
-/** Add a new query to history — deduplicates consecutive identical queries */
+/** Add a new query to history — deduplicates consecutive identical queries.
+ *  Pass status='rerun' to skip recording (user clicked a history item). */
 export function addToHistory(entry: Omit<HistoryEntry, 'id' | 'ts'>): void {
+  if ((entry as { status?: string }).status === 'rerun') return // skip history-click re-runs
   const existing = readHistory()
   if (existing[0]?.query === entry.query) return // no consecutive dupe
   const next: HistoryEntry = { ...entry, id: `h-${Date.now()}`, ts: Date.now() }
@@ -76,18 +78,14 @@ interface HistoryPanelProps {
 
 export default function QueryHistoryPanel({ onSelect }: HistoryPanelProps) {
   const [open, setOpen] = useState(false)
-  const [entries, setEntries] = useState<HistoryEntry[]>([])
+  // Initialize from localStorage immediately so badge count is correct on first render
+  const [entries, setEntries] = useState<HistoryEntry[]>(readHistory)
 
-  // Refresh from localStorage whenever panel opens
+  // Refresh whenever addToHistory writes a new entry (CustomEvent from Workspace)
   useEffect(() => {
-    if (open) setEntries(readHistory())
-  }, [open])
-
-  // Also refresh when a new message is added (storage event from same tab)
-  useEffect(() => {
-    const handleStorage = () => setEntries(readHistory())
-    window.addEventListener('o2c_history_update', handleStorage)
-    return () => window.removeEventListener('o2c_history_update', handleStorage)
+    const sync = () => setEntries(readHistory())
+    window.addEventListener('o2c_history_update', sync)
+    return () => window.removeEventListener('o2c_history_update', sync)
   }, [])
 
   const handleClear = () => {

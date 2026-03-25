@@ -270,7 +270,7 @@ export default function Workspace() {
   }, [expandNode])
 
   // Chat send
-  const handleSend = async (queryText) => {
+  const handleSend = async (queryText, fromHistory = false) => {
     const q = (queryText || input).trim()
     if (!q || isQuerying) return
     const startedAt = performance.now()
@@ -287,7 +287,7 @@ export default function Workspace() {
         setConversationId(res.conversation_id)
       }
       // T10: Record this query in history panel
-      addToHistory({ query: q, intent: res.intent || res.plan?.intent || 'analyze', status: res.status || 'success' })
+      addToHistory({ query: q, intent: res.intent || res.plan?.intent || 'analyze', status: fromHistory ? 'rerun' : (res.status || 'success') })
       try { window.dispatchEvent(new CustomEvent('o2c_history_update')) } catch { /* ignore in test env */ }
 
       setMessages(prev => [...prev, {
@@ -400,7 +400,7 @@ export default function Workspace() {
               ⚠️ {anomalyCount}
             </button>
           )}
-          <QueryHistoryPanel onSelect={(q) => { setMobileTab('chat'); handleSend(q) }} />
+          <QueryHistoryPanel onSelect={(q) => { setMobileTab('chat'); handleSend(q, true) }} />
           <button
             type="button"
             className="dark-toggle"
