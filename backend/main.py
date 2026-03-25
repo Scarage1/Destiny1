@@ -315,7 +315,7 @@ def get_dashboard():
 
     def _run(sql: str) -> list[dict]:
         try:
-            return adapter.execute_query(sql)
+            return adapter.execute_readonly_query(sql)
         except Exception:
             return []
 
