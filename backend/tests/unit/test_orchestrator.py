@@ -29,7 +29,9 @@ def test_orchestrator_error_when_query_agent_fails(monkeypatch) -> None:
 
     out = orchestrator.process_query("show data", conversation_id="c2")
     assert out["status"] == "error"
-    assert "Failed to generate query" in out["answer"]
+    # Friendly error message replaces the raw exception passthrough (T2)
+    assert out["answer"]  # non-empty user-facing message
+    assert out["status"] == "error"
 
 
 def test_orchestrator_success_flow_with_mocks(monkeypatch) -> None:

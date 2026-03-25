@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 import time
 from collections import OrderedDict
 from typing import Any
@@ -19,7 +20,9 @@ except ImportError:
 
 
 _SQL_RESULT_CACHE: OrderedDict[str, tuple[float, list[dict[str, Any]]]] = OrderedDict()
+_SQL_CACHE_LOCK: threading.Lock = threading.Lock()
 _EXEC_CB_STATE: dict[str, int | float] = {"failures": 0, "opened_until": 0.0}
+_CB_LOCK: threading.Lock = threading.Lock()
 
 
 def _clone_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -35,24 +38,26 @@ def _canonicalize_sql_for_cache(sql: str) -> str:
 def _cache_get(cache_key: str, ttl: int) -> tuple[bool, list[dict[str, Any]]]:
     if ttl <= 0:
         return False, []
-    entry = _SQL_RESULT_CACHE.get(cache_key)
-    if entry is None:
-        return False, []
-    ts, payload = entry
-    if (time.time() - ts) > ttl:
-        _SQL_RESULT_CACHE.pop(cache_key, None)
-        return False, []
-    _SQL_RESULT_CACHE.move_to_end(cache_key)
-    return True, _clone_rows(payload)
+    with _SQL_CACHE_LOCK:
+        entry = _SQL_RESULT_CACHE.get(cache_key)
+        if entry is None:
+            return False, []
+        ts, payload = entry
+        if (time.time() - ts) > ttl:
+            _SQL_RESULT_CACHE.pop(cache_key, None)
+            return False, []
+        _SQL_RESULT_CACHE.move_to_end(cache_key)
+        return True, _clone_rows(payload)
 
 
 def _cache_set(cache_key: str, results: list[dict[str, Any]], ttl: int, max_entries: int) -> None:
     if ttl <= 0:
         return
-    _SQL_RESULT_CACHE[cache_key] = (time.time(), _clone_rows(results))
-    _SQL_RESULT_CACHE.move_to_end(cache_key)
-    while len(_SQL_RESULT_CACHE) > max_entries:
-        _SQL_RESULT_CACHE.popitem(last=False)
+    with _SQL_CACHE_LOCK:
+        _SQL_RESULT_CACHE[cache_key] = (time.time(), _clone_rows(results))
+        _SQL_RESULT_CACHE.move_to_end(cache_key)
+        while len(_SQL_RESULT_CACHE) > max_entries:
+            _SQL_RESULT_CACHE.popitem(last=False)
 
 
 def _is_transient_db_error(error: Exception) -> bool:

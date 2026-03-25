@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .llm_client import LLMUnavailableError, call_llm_with_retry
 from .observability import log_event
 
 try:
@@ -87,11 +88,17 @@ User request:
 Return SQL only. No markdown, no explanation.
 """
 
-    response = model.generate_content(
-        prompt,
-        request_options={"timeout": llm_timeout_seconds},
-    )
-    sql = _extract_sql_candidate(getattr(response, "text", "") or "")
+    try:
+        text = call_llm_with_retry(
+            prompt,
+            primary_model=model,
+            fallback_model=None,   # orchestrator already selected model; no double fallback here
+            trace_id=trace_id,
+            request_options={"timeout": llm_timeout_seconds},
+        )
+    except LLMUnavailableError:
+        text = ""
+    sql = _extract_sql_candidate(text)
     ok, reason, sanitized = validate_sql_safety(sql)
     if ok:
         log_event(trace_id, "query_agent", {"mode": "llm", "sql": sanitized})
@@ -105,11 +112,17 @@ Failed SQL:
 Rewrite it into one safe SELECT/CTE query using only the allowed schema.
 Return SQL only.
 """
-    repair_response = model.generate_content(
-        repair_prompt,
-        request_options={"timeout": max(0.1, min(llm_timeout_seconds, 2.0))},
-    )
-    repaired_sql = _extract_sql_candidate(getattr(repair_response, "text", "") or "")
+    try:
+        repair_text = call_llm_with_retry(
+            repair_prompt,
+            primary_model=model,
+            fallback_model=None,
+            trace_id=trace_id,
+            request_options={"timeout": max(0.1, min(llm_timeout_seconds, 2.0))},
+        )
+    except LLMUnavailableError:
+        repair_text = ""
+    repaired_sql = _extract_sql_candidate(repair_text)
     ok, reason, sanitized = validate_sql_safety(repaired_sql)
     if ok:
         log_event(trace_id, "query_agent", {"mode": "llm_repair", "sql": sanitized})

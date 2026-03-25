@@ -8,11 +8,11 @@ import uuid
 from typing import Any
 
 import google.generativeai as genai
-import httpx
 
 from .executor_agent import execute_sql
 from .guard_agent import guard
 from .intent_schema import validate_and_normalize_plan
+from .llm_client import GroqModel as _GroqModel
 from .memory import get_context, update_context
 from .observability import build_agent_trace_summary, log_event
 from .planner_agent import plan as planner_plan
@@ -29,71 +29,7 @@ except ImportError:
 
 
 GEMINI_HOST = "generativelanguage.googleapis.com"
-GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-
-class _ModelResponse:
-    def __init__(self, text: str) -> None:
-        self.text = text
-
-
-class _GroqModel:
-    provider = "groq"
-
-    def __init__(self, api_key: str, model_name: str) -> None:
-        self.api_key = api_key
-        self.model_name = model_name
-
-    def _to_messages(self, prompt: Any) -> list[dict[str, str]]:
-        if isinstance(prompt, str):
-            return [{"role": "user", "content": prompt}]
-
-        if isinstance(prompt, list):
-            out: list[dict[str, str]] = []
-            for item in prompt:
-                if not isinstance(item, dict):
-                    continue
-                role = item.get("role", "user")
-                if role == "model":
-                    role = "assistant"
-                parts = item.get("parts")
-                if isinstance(parts, list):
-                    chunks: list[str] = []
-                    for part in parts:
-                        if isinstance(part, dict) and "text" in part:
-                            chunks.append(str(part.get("text", "")))
-                        elif isinstance(part, str):
-                            chunks.append(part)
-                    content = "\n".join(c for c in chunks if c).strip()
-                else:
-                    content = str(item.get("content", "")).strip()
-                if content:
-                    out.append({"role": role, "content": content})
-            if out:
-                return out
-
-        return [{"role": "user", "content": str(prompt)}]
-
-    def generate_content(self, prompt: Any, request_options: dict[str, Any] | None = None) -> _ModelResponse:
-        timeout = (request_options or {}).get("timeout", get_runtime_config().llm_timeout_seconds)
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "model": self.model_name,
-            "messages": self._to_messages(prompt),
-            "temperature": 0,
-        }
-        response = httpx.post(GROQ_API_URL, headers=headers, json=payload, timeout=timeout)
-        response.raise_for_status()
-        data = response.json()
-        text = (
-            data.get("choices", [{}])[0]
-            .get("message", {})
-            .get("content", "")
-        )
-        return _ModelResponse(text or "")
 
 
 def _get_model():
@@ -140,6 +76,32 @@ def _resolve_reasoning_model(trace_id: str, config: RuntimeConfig) -> Any | None
     if fallback_model is not None:
         log_event(trace_id, "llm_fallback_selected", {"provider": "groq", "stage": "reasoning"})
     return fallback_model
+
+
+
+def _friendly_llm_error(exc: Exception) -> str:
+    """Convert raw LLM errors into user-friendly messages."""
+    msg = str(exc).lower()
+    if any(x in msg for x in ("429", "quota", "rate limit", "resource_exhausted", "llm providers are temporarily")):
+        return (
+            "Our analytics engine is currently experiencing high demand. "
+            "Your data is being queried using built-in templates. "
+            "Please try again in a moment if the result is incomplete."
+        )
+    if "timeout" in msg or "timed out" in msg:
+        return (
+            "The query took too long to generate. "
+            "Try a more specific question, for example mentioning the exact document ID."
+        )
+    if "unavailable" in msg or "connection" in msg:
+        return (
+            "The AI reasoning engine is temporarily offline. "
+            "Built-in templates are still active for common O2C queries."
+        )
+    return (
+        "We couldn't generate a query for that question right now. "
+        "Try rephrasing, or use one of the example queries below."
+    )
 
 
 def process_query(user_query: str, conversation_id: str | None = None) -> dict[str, Any]:
@@ -387,7 +349,7 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
     except Exception as e:
         log_event(trace_id, "query_agent_error", {"error": str(e)})
         return _make_result(
-            answer=f"Failed to generate query: {str(e)}",
+            answer=_friendly_llm_error(e),
             status="error",
             plan=plan,
             verification={"status": "failed", "warnings": ["Query generation failed"]},
