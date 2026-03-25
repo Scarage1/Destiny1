@@ -367,11 +367,11 @@ def get_dashboard():
 
     return {
         "cards": [
-            {"id": "total_orders", "label": "Total Sales Orders", "value": total_orders, "icon": "📦", "trend": None},
-            {"id": "completion_rate", "label": "Complete O2C Cycles", "value": f"{completion_pct}%", "icon": "✅", "detail": f"{complete_cycles} of {total_orders}"},
-            {"id": "never_billed", "label": "Deliveries Never Billed", "value": never_billed, "icon": "⚠️", "severity": "warning"},
-            {"id": "uncleared", "label": "Uncleared Invoices", "value": uncleared, "icon": "🔴", "severity": "critical"},
-            {"id": "top_customer", "label": "Top Customer", "value": top_customer["name"], "icon": "🏆", "detail": f"${top_customer['total_amount']:,}"},
+            {"id": "total_orders",    "label": "Orders",      "value": total_orders},
+            {"id": "completion_rate", "label": "Complete",    "value": f"{completion_pct}%"},
+            {"id": "never_billed",    "label": "Never Billed", "value": never_billed, "severity": "warning"},
+            {"id": "uncleared",       "label": "Uncleared",   "value": uncleared, "severity": "critical"},
+            {"id": "top_customer",    "label": "Top Customer", "value": top_customer["name"]},
         ]
     }
 

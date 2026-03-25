@@ -2593,7 +2593,7 @@ details[open] .results-section__title::before {
 
 .stat-strip {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 1px;
   background: var(--border);
   border-radius: var(--radius);
