@@ -308,11 +308,25 @@ def query_trace(trace_id: str):
 
 
 # ─── Static file serving (SPA catch-all) ──────────────────────────────────────
-# Mounted AFTER all /api/* routes so they always take precedence.
+# Pattern for React Router (history mode) in FastAPI:
+#  1. Mount /assets/ for hashed CSS/JS bundles (exact file matches)
+#  2. Catch-all route returns index.html for every other non-API path
 # Enabled only when SERVE_STATIC=true (Docker / Azure). Never in dev or tests.
 _frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
 if _SERVE_STATIC and _frontend_dist.is_dir():
-    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="ui")
+    # Serve hashed JS/CSS assets directly
+    _assets_dir = _frontend_dist / "assets"
+    if _assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=str(_assets_dir)), name="assets")
+
+    # SPA catch-all: serve index.html for any non-API, non-asset path
+    _index_html = _frontend_dist / "index.html"
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def spa_fallback(full_path: str):  # noqa: ARG001
+        from fastapi.responses import FileResponse  # noqa: PLC0415
+        return FileResponse(str(_index_html))
+
     logger.info("Serving frontend SPA from %s", _frontend_dist)
 elif _SERVE_STATIC:
     logger.warning(
