@@ -52,7 +52,7 @@ def test_orchestrator_success_flow_with_mocks(monkeypatch) -> None:
         },
     )
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"], []))
 
     out = orchestrator.process_query("show one order", conversation_id="c3")
     assert out["status"] == "success"
@@ -79,7 +79,7 @@ def test_orchestrator_includes_stage_latencies_in_agent_trace(monkeypatch) -> No
         },
     )
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"], []))
 
     out = orchestrator.process_query("show one order", conversation_id="c8")
     stage_latencies = out.get("agent_trace", {}).get("stage_latencies_ms", {})
@@ -110,7 +110,7 @@ def test_orchestrator_passes_semantic_cache_key_to_executor(monkeypatch) -> None
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"], []))
 
     out = orchestrator.process_query("show one order", conversation_id="c9")
     assert out["status"] == "success"
@@ -203,7 +203,7 @@ def test_orchestrator_strict_mode_disables_reasoning_model(monkeypatch) -> None:
         },
     )
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"], []))
 
     out = orchestrator.process_query("show one order", conversation_id="c10")
     assert out["status"] == "success"
@@ -307,7 +307,7 @@ def test_orchestrator_calls_query_agent_without_model(monkeypatch) -> None:
         },
     )
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"], []))
 
     out = orchestrator.process_query("trace invoice INV123", conversation_id="c7")
     assert out["status"] == "success"
@@ -333,7 +333,7 @@ def test_orchestrator_resolves_metric_follow_up_from_conversation(monkeypatch) -
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SO-9001 has 4200 net amount.", ["SalesOrder:SO-9001"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SO-9001 has 4200 net amount.", ["SalesOrder:SO-9001"], []))
 
     first = orchestrator.process_query("highest order", conversation_id="conv-follow")
     second = orchestrator.process_query("net amount", conversation_id="conv-follow")
@@ -389,7 +389,7 @@ def test_orchestrator_passes_reasoning_model_to_planner_and_query(monkeypatch) -
         },
     )
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["SalesOrder:SO-1"], []))
 
     out = orchestrator.process_query("show customers and their sales orders", conversation_id="conv-nl")
 
@@ -417,7 +417,7 @@ def test_orchestrator_handles_highest_ordered_product_without_clarification(monk
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SKU-1 has quantity 72 PC.", ["Product:SKU-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SKU-1 has quantity 72 PC.", ["Product:SKU-1"], []))
 
     out = orchestrator.process_query("highest ordered product", conversation_id="conv-product-rank")
 
@@ -445,7 +445,7 @@ def test_orchestrator_handles_typo_heavy_highest_sold_product_without_clarificat
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SKU-1 has quantity 72 PC.", ["Product:SKU-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SKU-1 has quantity 72 PC.", ["Product:SKU-1"], []))
 
     out = orchestrator.process_query("tellme abot the highest selled product", conversation_id="conv-product-typo")
 
@@ -473,7 +473,7 @@ def test_orchestrator_handles_unpaid_invoices_without_clarification(monkeypatch)
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("INV-1 is still unpaid.", ["BillingDocument:INV-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("INV-1 is still unpaid.", ["BillingDocument:INV-1"], []))
 
     out = orchestrator.process_query("show unpaid invoices", conversation_id="conv-unpaid-invoices")
 
@@ -501,7 +501,7 @@ def test_orchestrator_handles_pending_delivery_orders_without_clarification(monk
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SO-1 is still pending delivery.", ["SalesOrder:SO-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SO-1 is still pending delivery.", ["SalesOrder:SO-1"], []))
 
     out = orchestrator.process_query("orders pending delivery", conversation_id="conv-pending-delivery")
 
@@ -529,7 +529,7 @@ def test_orchestrator_handles_customer_product_relationship_query(monkeypatch) -
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("Acme ordered Widget in sales order SO-1.", ["Customer:CUST-1", "SalesOrder:SO-1", "Product:MAT-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("Acme ordered Widget in sales order SO-1.", ["Customer:CUST-1", "SalesOrder:SO-1", "Product:MAT-1"], []))
 
     out = orchestrator.process_query("who bought what from us", conversation_id="conv-customer-products")
 
@@ -565,7 +565,7 @@ def test_orchestrator_resolves_typo_heavy_price_follow_up_from_context(monkeypat
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["Product:SKU-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("ok", ["Product:SKU-1"], []))
 
     first = orchestrator.process_query("what is highest order product", conversation_id="conv-price-typo")
     second = orchestrator.process_query("whichnhas highest price", conversation_id="conv-price-typo")
@@ -596,7 +596,7 @@ def test_orchestrator_handles_top_selling_item_without_clarification(monkeypatch
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SKU-1 has quantity 72 PC.", ["Product:SKU-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("SKU-1 has quantity 72 PC.", ["Product:SKU-1"], []))
 
     out = orchestrator.process_query("top selling item", conversation_id="conv-top-selling-item")
 
@@ -623,7 +623,7 @@ def test_orchestrator_handles_who_paid_the_most_without_clarification(monkeypatc
 
     monkeypatch.setattr(orchestrator, "execute_sql", _exec)
     monkeypatch.setattr(orchestrator, "verify", lambda *_args, **_kwargs: {"status": "ok", "warnings": []})
-    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("Acme Corp paid 4200.", ["Customer:C-1"]))
+    monkeypatch.setattr(orchestrator, "synthesize", lambda *_args, **_kwargs: ("Acme Corp paid 4200.", ["Customer:C-1"], []))
 
     out = orchestrator.process_query("who paid the most", conversation_id="conv-paid-most")
 

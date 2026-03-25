@@ -87,6 +87,16 @@ export default function Workspace() {
   // Mobile tab — 'graph' or 'chat'
   const [mobileTab, setMobileTab] = useState('chat')
 
+  // Dark mode (T8)
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return localStorage.getItem('o2c_dark_mode') === '1' } catch { return false }
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light')
+    try { localStorage.setItem('o2c_dark_mode', darkMode ? '1' : '0') } catch {}
+  }, [darkMode])
+
   // Refs
   const graphRef = useRef()
   const messagesEndRef = useRef()
@@ -220,6 +230,16 @@ export default function Workspace() {
 
   // Node click
   const handleNodeClick = useCallback(async (node) => {
+    // T12: switch to chat tab and send a trace query for the clicked node
+    setMobileTab('chat')
+    const nodeType = node.type || getNodeType(node.id)
+    const shortId  = getShortId(node.id)
+    const traceQ   = `Trace the full O2C flow for ${nodeType} ${shortId}`
+    handleSend(traceQ)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-next-line-ignore
+
+  const handleNodeClickDetails = useCallback(async (node) => {
     setSelectedNode(node)
     expandNode(node.id)
     try {
@@ -343,6 +363,14 @@ export default function Workspace() {
           </div>
         </div>
         <div className="topbar__right">
+          <button
+            type="button"
+            className="dark-toggle"
+            onClick={() => setDarkMode(d => !d)}
+            title="Toggle dark mode"
+          >
+            {darkMode ? '☀️ Light' : '�� Dark'}
+          </button>
           <div className={`topbar__status${backendOnline ? '' : ' topbar__status--offline'}`}>
             <span className="topbar__status-dot" />
             {backendOnline ? 'Live' : 'Offline'}

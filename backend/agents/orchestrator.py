@@ -179,6 +179,7 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
         verification: dict[str, Any] | None = None,
         clarification: str | None = None,
         row_count: int | None = None,
+        suggestions: list[str] | None = None,
     ) -> dict[str, Any]:
         """Single factory for the pipeline result dict — eliminates 10x boilerplate."""
         v = verification or {"status": "skipped", "warnings": []}
@@ -195,6 +196,8 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
             "intent": plan.get("intent") if plan else None,
             "plan": plan,
             "verification": v,
+            "row_count": row_count,
+            "suggestions": suggestions or [],
             "agent_trace": _agent_trace(plan, sql, v, clarification, row_count),
         }
 
@@ -414,7 +417,7 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
         )
 
     stage_started = time.perf_counter()
-    answer, referenced_nodes = synthesize(
+    answer, referenced_nodes, suggestions = synthesize(
         plan,
         normalized_query,
         generated_sql,
@@ -436,4 +439,5 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
         referenced_nodes=referenced_nodes,
         verification=verification,
         row_count=len(results),
+        suggestions=suggestions,
     )

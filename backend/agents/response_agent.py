@@ -208,6 +208,49 @@ def _generate_model_answer(
     return str(payload or "")
 
 
+
+# ─── Suggestion Engine (T7) ──────────────────────────────────────────────────
+_SUGGESTIONS_BY_INTENT: dict[str, list[str]] = {
+    "lookup":    ["Show all orders for this customer", "Which deliveries are linked to this order?", "What is the total billing amount?"],
+    "analyze":   ["Which customer has the highest billing volume?", "What are the top 5 products by quantity?", "Show completion rate by region"],
+    "anomaly":   ["Find deliveries that were never billed", "List orders billed but never delivered", "Which customers have the most incomplete flows?"],
+    "trace":     ["Show all deliveries for this sales order", "Find billing documents linked to this order", "Are there any missing steps in this flow?"],
+    "list":      ["Show only anomalous records", "Who are the top customers by order volume?", "What products appear in incomplete orders?"],
+}
+
+_SUGGESTIONS_BY_RESULT: dict[str, list[str]] = {
+    "customer":      ["Show all orders for this customer", "What is this customer's billing history?"],
+    "salesorder":    ["Trace this sales order end-to-end", "What deliveries are linked to this order?"],
+    "billingdocument": ["Is there a payment for this billing document?", "Show the delivery linked to this invoice"],
+    "delivery":      ["Was this delivery billed?", "Trace the full order flow for this delivery"],
+    "payment":       ["Show the billing document for this payment", "Are there any unpaid invoices for this customer?"],
+}
+
+
+def _generate_suggestions(plan: dict, results: list[dict]) -> list[str]:
+    """Deterministically produce 2-3 contextual follow-up queries."""
+    intent = str(plan.get("intent") or "analyze").lower()
+    suggestions: list[str] = list(_SUGGESTIONS_BY_INTENT.get(intent, _SUGGESTIONS_BY_INTENT["analyze"]))
+
+    # Inject result-driven suggestions based on columns present
+    if results:
+        first_row_keys = {k.lower() for k in results[0]}
+        for key, extra in _SUGGESTIONS_BY_RESULT.items():
+            if key in first_row_keys:
+                suggestions = extra + suggestions
+                break
+
+    # Deduplicate, limit to 3
+    seen: set[str] = set()
+    unique: list[str] = []
+    for s in suggestions:
+        if s not in seen:
+            seen.add(s)
+            unique.append(s)
+    return unique[:3]
+
+
+
 def synthesize(
     plan: dict[str, Any],
     user_query: str,
@@ -223,7 +266,8 @@ def synthesize(
     if len(results) == 0:
         answer = "No matching records found in the dataset."
         log_event(trace_id, "response", {"status": "empty", "referenced_nodes": 0})
-        return answer, referenced_nodes
+        suggestions = _generate_suggestions(plan, results)
+        return answer, referenced_nodes, suggestions
 
     answer: str
     try:
@@ -247,5 +291,6 @@ Results ({len(results)} rows):
     if not validate_response_grounding(answer, results):
         answer = _deterministic_nl_summary(results)
 
-    log_event(trace_id, "response", {"status": "success", "referenced_nodes": len(referenced_nodes)})
-    return answer, referenced_nodes
+    suggestions = _generate_suggestions(plan, results)
+    log_event(trace_id, "response", {"status": "success", "referenced_nodes": len(referenced_nodes), "suggestions": len(suggestions)})
+    return answer, referenced_nodes, suggestions

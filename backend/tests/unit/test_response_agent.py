@@ -12,7 +12,7 @@ def test_synthesize_returns_nl_summary_without_model() -> None:
         {"product": "FG-200", "billingDocumentCount": 5},
     ]
 
-    answer, referenced_nodes = synthesize(
+    answer, referenced_nodes, suggestions = synthesize(
         plan=plan,
         user_query="Which products are associated with the highest number of billing documents?",
         sql="SELECT product, COUNT(*) AS billingDocumentCount FROM billing_document_items GROUP BY product ORDER BY billingDocumentCount DESC LIMIT 10;",
@@ -29,7 +29,7 @@ def test_synthesize_returns_nl_summary_without_model() -> None:
 
 
 def test_synthesize_empty_results_message() -> None:
-    answer, referenced_nodes = synthesize(
+    answer, referenced_nodes, suggestions = synthesize(
         plan={"intent": "analyze"},
         user_query="Show missing deliveries",
         sql="SELECT * FROM outbound_delivery_headers WHERE 1=0;",
@@ -48,7 +48,7 @@ def test_synthesize_falls_back_when_model_response_times_out() -> None:
             time.sleep(0.05)
             return type("Response", (), {"text": "slow answer"})()
 
-    answer, referenced_nodes = synthesize(
+    answer, referenced_nodes, suggestions = synthesize(
         plan={"intent": "analyze"},
         user_query="Which products have the most billing documents?",
         sql="SELECT product, COUNT(*) AS billingDocumentCount FROM billing_document_items GROUP BY product ORDER BY billingDocumentCount DESC LIMIT 10;",
@@ -67,7 +67,7 @@ def test_synthesize_falls_back_when_model_response_times_out() -> None:
 
 
 def test_synthesize_customer_product_relationship_without_model() -> None:
-    answer, referenced_nodes = synthesize(
+    answer, referenced_nodes, suggestions = synthesize(
         plan={"intent": "analyze", "entity_type": "customer", "group_by": "customer", "operation": "list"},
         user_query="who bought what from us",
         sql="SELECT customerName, customer, salesOrder, product, productDescription FROM sales_order_items LIMIT 10;",
