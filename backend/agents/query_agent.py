@@ -48,6 +48,23 @@ def _escape_sql_literal(value: str) -> str:
     return cleaned.replace("'", "''")
 
 
+def _build_date_where_clause(filters: list, table_alias: str = "soh", col: str = "creationDate") -> str:
+    """Build a SQL WHERE fragment from date filters in the plan.
+    Returns '' if no date filters are present.
+    """
+    clauses: list[str] = []
+    for f in filters:
+        if not isinstance(f, dict):
+            continue
+        field = str(f.get("field") or "")
+        op = str(f.get("op") or "")
+        val = str(f.get("value") or "")
+        if field == "date" and op in (">=", "<=", ">", "<") and val:
+            safe_val = val.replace("'", "''")
+            clauses.append(f"{table_alias}.{col} {op} '{safe_val}'")
+    return " AND ".join(clauses)
+
+
 def _extract_sql_candidate(text: str) -> str:
     raw = (text or "").strip()
     if not raw:

@@ -50,7 +50,8 @@ jobs:
           -q
           --cov=backend
           --cov-report=term-missing
-          --cov-fail-under=60
+          --cov-fail-under=69
+          # Note: 80% target (T16) needs integration tests w/ real DB — see Makefile
 
   frontend:
     name: Frontend — test + build

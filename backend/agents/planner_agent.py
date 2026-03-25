@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import date, timedelta
 from typing import Any
 
 from .observability import log_event
@@ -71,6 +72,104 @@ _TYPO_CORRECTIONS: dict[str, str] = {
     "anamoly": "anomaly", "anomaley": "anomaly",
     "unsold": "not sold", "unpayed": "unpaid", "nonpaid": "unpaid",
 }
+
+
+# ── Time-range extraction (T5) ──────────────────────────────────────────────────────
+
+_MONTH_NAMES = {
+    "jan": "01", "january": "01",
+    "feb": "02", "february": "02",
+    "mar": "03", "march": "03",
+    "apr": "04", "april": "04",
+    "may": "05",
+    "jun": "06", "june": "06",
+    "jul": "07", "july": "07",
+    "aug": "08", "august": "08",
+    "sep": "09", "september": "09",
+    "oct": "10", "october": "10",
+    "nov": "11", "november": "11",
+    "dec": "12", "december": "12",
+}
+
+_QUARTER_MONTHS = {"q1": ("01", "03"), "q2": ("04", "06"), "q3": ("07", "09"), "q4": ("10", "12")}
+
+
+def _extract_time_range(q: str) -> dict[str, str] | None:
+    """Detect time expressions in the query and return {date_from, date_to} strings.
+
+    Detected patterns:
+      - "this year" / "this month" / "this week"
+      - "last 30 days" / "last N months"
+      - "in 2024" / "2023" / "FY2024"
+      - "Q1 2024" / "q2 2023"
+      - "January 2024" / "jan 2024"
+    All dates formatted as ISO strings YYYY-MM-DD.
+    """
+    today = date.today()
+    q_lower = q.lower()
+
+    # "this year"
+    if "this year" in q_lower:
+        return {"date_from": f"{today.year}-01-01", "date_to": f"{today.year}-12-31"}
+
+    # "this month"
+    if "this month" in q_lower:
+        first_day = today.replace(day=1)
+        last_day_val = (first_day.replace(month=first_day.month % 12 + 1, day=1) - timedelta(days=1)) if first_day.month < 12 else first_day.replace(day=31)
+        return {"date_from": first_day.isoformat(), "date_to": last_day_val.isoformat()}
+
+    # "this week"
+    if "this week" in q_lower:
+        monday = today - timedelta(days=today.weekday())
+        sunday = monday + timedelta(days=6)
+        return {"date_from": monday.isoformat(), "date_to": sunday.isoformat()}
+
+    # "last N days/months/weeks"
+    import re as _re
+    last_n = _re.search(r"last\s+(\d+)\s+(day|week|month)s?", q_lower)
+    if last_n:
+        n, unit = int(last_n.group(1)), last_n.group(2)
+        if unit == "day":
+            delta = timedelta(days=n)
+        elif unit == "week":
+            delta = timedelta(weeks=n)
+        else:
+            delta = timedelta(days=n * 30)
+        return {"date_from": (today - delta).isoformat(), "date_to": today.isoformat()}
+
+    # "last year"
+    if "last year" in q_lower:
+        y = today.year - 1
+        return {"date_from": f"{y}-01-01", "date_to": f"{y}-12-31"}
+
+    # "last month"
+    if "last month" in q_lower:
+        first_this = today.replace(day=1)
+        last_month_end = first_this - timedelta(days=1)
+        last_month_start = last_month_end.replace(day=1)
+        return {"date_from": last_month_start.isoformat(), "date_to": last_month_end.isoformat()}
+
+    # Quarter: "Q1 2024" or "q3 2023"
+    quarter = _re.search(r"\b(q[1-4])\s*(\d{4})\b", q_lower)
+    if quarter:
+        qname, year = quarter.group(1), int(quarter.group(2))
+        m_from, m_to = _QUARTER_MONTHS[qname]
+        return {"date_from": f"{year}-{m_from}-01", "date_to": f"{year}-{m_to}-31"}
+
+    # Year only: "in 2024" / "2024" / "FY2024"
+    year_only = _re.search(r"\b(?:in|fy|year)?\s*(20\d{2})\b", q_lower)
+    if year_only:
+        y = int(year_only.group(1))
+        return {"date_from": f"{y}-01-01", "date_to": f"{y}-12-31"}
+
+    # Month + year: "January 2024" / "jan 2024"
+    month_year = _re.search(r"\b(" + "|".join(_MONTH_NAMES.keys()) + r")\s+(20\d{2})\b", q_lower)
+    if month_year:
+        m = _MONTH_NAMES[month_year.group(1)]
+        y = int(month_year.group(2))
+        return {"date_from": f"{y}-{m}-01", "date_to": f"{y}-{m}-28"}  # 28 = safe for all months
+
+    return None
 
 
 def _apply_typo_corrections(text: str) -> str:
@@ -395,6 +494,12 @@ def _heuristic_plan(user_query: str, context: dict[str, Any]) -> dict[str, Any]:
             operation = source_plan.get("operation") or operation
         clarification = None
         confidence = max(confidence, 0.92)
+
+    # T5: Time-range filter injection
+    time_range = _extract_time_range(user_query)
+    if time_range:
+        filters.append({"field": "date", "op": ">=", "value": time_range["date_from"]})
+        filters.append({"field": "date", "op": "<=", "value": time_range["date_to"]})
 
     if customer_product_relation_query:
         intent = "analyze"

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import logging
+import os
 from collections import OrderedDict, deque
 from datetime import UTC, datetime
 from pathlib import Path
@@ -15,6 +17,18 @@ _EVENTS_PER_TRACE_MAX = _RUNTIME_CONFIG.observability_events_per_trace
 _METRICS_MAX_EVENTS_SCAN = _RUNTIME_CONFIG.observability_metrics_max_events_scan
 
 _RECENT_EVENTS_BY_TRACE: OrderedDict[str, deque[dict[str, Any]]] = OrderedDict()
+
+# T17: Structured JSON logger for Azure Monitor / App Insights
+# When running in Azure (WEBSITE_INSTANCE_ID set), emit JSON to stdout so
+# App Service log stream and Log Analytics pick up structured fields.
+_IS_AZURE = bool(os.environ.get("WEBSITE_INSTANCE_ID") or os.environ.get("AZURE_STRUCTURED_LOGS"))
+_azure_logger = logging.getLogger("o2c.structured")
+if _IS_AZURE and not _azure_logger.handlers:
+    _sh = logging.StreamHandler()
+    _sh.setFormatter(logging.Formatter("%(message)s"))
+    _azure_logger.addHandler(_sh)
+    _azure_logger.setLevel(logging.INFO)
+    _azure_logger.propagate = False
 
 
 def _remember_recent_event(record: dict[str, Any]) -> None:
@@ -43,6 +57,12 @@ def log_event(trace_id: str, stage: str, payload: dict[str, Any]) -> None:
         "payload": payload,
     }
     _remember_recent_event(record)
+
+    # T17: Emit to stdout as structured JSON when in Azure
+    if _IS_AZURE:
+        import contextlib
+        with contextlib.suppress(Exception):
+            _azure_logger.info(json.dumps(record, default=str))
 
     try:
         LOG_PATH.parent.mkdir(parents=True, exist_ok=True)

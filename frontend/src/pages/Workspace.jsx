@@ -106,6 +106,15 @@ export default function Workspace() {
       .catch(() => {})
   }, [])
 
+  // T19: Anomaly badge — sum of never-billed + uncleared counts
+  const anomalyCount = dashboardCards.reduce((acc, card) => {
+    if (card.severity === 'warning' || card.severity === 'critical') {
+      const n = parseInt(String(card.value), 10)
+      return acc + (isNaN(n) ? 0 : n)
+    }
+    return acc
+  }, 0)
+
   // Refs
   const graphRef = useRef()
   const messagesEndRef = useRef()
@@ -372,13 +381,27 @@ export default function Workspace() {
           </div>
         </div>
         <div className="topbar__right">
+          {/* T19: Anomaly badge — only shown when live anomalies detected from dashboard */}
+          {anomalyCount > 0 && (
+            <button
+              type="button"
+              className="anomaly-badge"
+              title={`${anomalyCount} process anomalies detected — click to investigate`}
+              onClick={() => {
+                setMobileTab('chat')
+                handleSend('List all process anomalies and orphan records in the system')
+              }}
+            >
+              ⚠️ {anomalyCount}
+            </button>
+          )}
           <button
             type="button"
             className="dark-toggle"
             onClick={() => setDarkMode(d => !d)}
             title="Toggle dark mode"
           >
-            {darkMode ? '☀️ Light' : '�� Dark'}
+            {darkMode ? '☀️ Light' : '🌙 Dark'}
           </button>
           <div className={`topbar__status${backendOnline ? '' : ' topbar__status--offline'}`}>
             <span className="topbar__status-dot" />
