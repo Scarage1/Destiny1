@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -163,13 +163,15 @@ class SubgraphResponse(BaseModel):
 
 
 @app.get("/")
-def root():
+def root(request: Request):
+    base = str(request.base_url).rstrip("/")
+    serve_static = os.environ.get("SERVE_STATIC", "").lower() == "true"
     return {
         "message": "O2C Graph Intelligence backend is running.",
-        "health": "/api/health",
-        "graph_overview": "/api/graph/overview",
-        "query_endpoint": "/api/query/ask",
-        "frontend": "http://127.0.0.1:3000",
+        "health": f"{base}/api/health",
+        "graph_overview": f"{base}/api/graph/overview",
+        "query_endpoint": f"{base}/api/query/ask",
+        "frontend": base if serve_static else "http://localhost:3000 (dev)",
     }
 
 
