@@ -2229,3 +2229,120 @@ details[open] .results-section__title::before {
   .suggestion-pill { font-size: 11px; padding: 5px 10px; }
   .results-table-wrap { max-height: 220px; }
 }
+
+/* ═══════════════════════════════════════════════
+   SQL EXPLAIN BLOCK  (T20)
+   ═══════════════════════════════════════════════ */
+
+.sql-explain-wrap {
+  margin-top: 4px;
+}
+
+.sql-explain-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-border);
+  border-radius: calc(var(--radius) - 2px);
+  padding: 8px 12px;
+  margin-top: 4px;
+  line-height: 1.55;
+}
+
+.sql-explain-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+[data-theme="dark"] .sql-explain-text {
+  background: rgba(91, 141, 245, 0.1);
+  border-color: rgba(91, 141, 245, 0.2);
+  color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD KPI CARDS  (T18)
+   ═══════════════════════════════════════════════ */
+
+.dashboard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px 4px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+
+.dashboard-card {
+  flex: 1 1 140px;
+  min-width: 120px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  transition: border-color var(--transition), transform var(--transition);
+  cursor: default;
+}
+
+.dashboard-card:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+}
+
+.dashboard-card--warning { border-left: 3px solid var(--warning); }
+.dashboard-card--critical { border-left: 3px solid var(--error); }
+
+.dashboard-card__icon {
+  font-size: 16px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.dashboard-card__value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-card__label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.dashboard-card__detail {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+[data-theme="dark"] .dashboard-card {
+  background: var(--bg-surface);
+}
+
+[data-theme="dark"] .dashboard-cards {
+  background: var(--bg-elevated);
+  border-bottom-color: var(--border);
+}
+
+@media (max-width: 768px) {
+  .dashboard-cards {
+    gap: 6px;
+    padding: 8px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  .dashboard-card {
+    flex: 0 0 130px;
+    padding: 8px 10px;
+  }
+  .dashboard-card__value { font-size: 16px; }
+}

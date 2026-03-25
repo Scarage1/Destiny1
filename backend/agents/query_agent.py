@@ -269,6 +269,87 @@ WHERE p.accountingDocument = '{safe_id}'
 LIMIT 20
 """.strip()
 
+    # ── T4: Full 4-hop lifecycle trace for a Sales Order ──────────────────────
+    if intent == "trace_flow" and entity_type in ("sales_order", "order") and entity_id:
+        safe_id = _escape_sql_literal(str(entity_id))
+        return f"""
+SELECT
+    soh.salesOrder,
+    soh.creationDate AS orderDate,
+    soh.soldToParty AS customer,
+    ROUND(soh.totalNetAmount, 2) AS orderAmount,
+    soh.overallDeliveryStatus,
+
+    -- Hop 2: Delivery
+    odh.deliveryDocument,
+    odh.creationDate AS deliveryDate,
+    odh.actualGoodsMovementDate AS goodsMovementDate,
+    odh.overallGoodsMovementStatus AS deliveryStatus,
+
+    -- Hop 3: Billing
+    bdh.billingDocument,
+    bdh.billingDocumentDate,
+    ROUND(bdh.totalNetAmount, 2) AS billedAmount,
+
+    -- Hop 4: Payment
+    p.accountingDocument AS paymentDoc,
+    p.clearingDate AS paymentDate,
+    ROUND(p.amountInTransactionCurrency, 2) AS paymentAmount,
+
+    CASE
+        WHEN odh.deliveryDocument IS NULL THEN 'Missing Delivery'
+        WHEN bdh.billingDocument IS NULL THEN 'Missing Billing'
+        WHEN p.accountingDocument IS NULL THEN 'Not Cleared'
+        ELSE 'Complete'
+    END AS lifecycleStatus
+
+FROM sales_order_headers soh
+
+LEFT JOIN outbound_delivery_items odi
+    ON odi.referenceSdDocument = soh.salesOrder
+LEFT JOIN outbound_delivery_headers odh
+    ON odh.deliveryDocument = odi.deliveryDocument
+
+LEFT JOIN billing_document_items bdi
+    ON bdi.referenceSdDocument = odi.deliveryDocument
+LEFT JOIN billing_document_headers bdh
+    ON bdh.billingDocument = bdi.billingDocument
+
+LEFT JOIN payments p
+    ON p.accountingDocument = bdh.accountingDocument
+
+WHERE soh.salesOrder = '{safe_id}'
+LIMIT 20
+""".strip()
+
+    # ── T4: Full lifecycle trace starting from a Billing Document ─────────────
+    if intent == "trace_flow" and entity_type == "invoice" and entity_id and "sales" in q:
+        safe_id = _escape_sql_literal(str(entity_id))
+        return f"""
+SELECT
+    bdh.billingDocument,
+    bdh.billingDocumentDate,
+    bdi.referenceSdDocument AS deliveryDocument,
+    odi.referenceSdDocument AS salesOrder,
+    soh.creationDate AS orderDate,
+    soh.soldToParty AS customer,
+    ROUND(bdh.totalNetAmount, 2) AS billedAmount,
+    p.clearingDate AS paymentDate,
+    ROUND(p.amountInTransactionCurrency, 2) AS paymentAmount,
+    CASE
+        WHEN p.accountingDocument IS NULL THEN 'Unpaid'
+        WHEN p.clearingDate IS NOT NULL THEN 'Cleared'
+        ELSE 'Pending'
+    END AS paymentStatus
+FROM billing_document_headers bdh
+LEFT JOIN billing_document_items bdi ON bdi.billingDocument = bdh.billingDocument
+LEFT JOIN outbound_delivery_items odi ON odi.deliveryDocument = bdi.referenceSdDocument
+LEFT JOIN sales_order_headers soh ON soh.salesOrder = odi.referenceSdDocument
+LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+WHERE bdh.billingDocument = '{safe_id}'
+LIMIT 20
+""".strip()
+
     if intent == "analyze" and unpaid_query and group_by == "customer":
         order_direction = _order_direction_for_operation(operation)
         return f"""

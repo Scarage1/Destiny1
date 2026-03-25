@@ -97,6 +97,15 @@ export default function Workspace() {
     try { localStorage.setItem('o2c_dark_mode', darkMode ? '1' : '0') } catch {}
   }, [darkMode])
 
+  // Dashboard KPI cards (T18)
+  const [dashboardCards, setDashboardCards] = useState([])
+  useEffect(() => {
+    fetch('/api/dashboard')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.cards) setDashboardCards(data.cards) })
+      .catch(() => {})
+  }, [])
+
   // Refs
   const graphRef = useRef()
   const messagesEndRef = useRef()
@@ -460,6 +469,23 @@ export default function Workspace() {
             <div className="chat__header-subtitle">Ask anything about your O2C data</div>
           </div>
         </div>
+
+        {/* T18: Dashboard KPI cards — loaded from /api/dashboard on mount */}
+        {dashboardCards.length > 0 && (
+          <div className="dashboard-cards">
+            {dashboardCards.map(card => (
+              <div
+                key={card.id}
+                className={`dashboard-card${card.severity === 'warning' ? ' dashboard-card--warning' : card.severity === 'critical' ? ' dashboard-card--critical' : ''}`}
+              >
+                <div className="dashboard-card__icon">{card.icon}</div>
+                <div className="dashboard-card__value">{card.value}</div>
+                <div className="dashboard-card__label">{card.label}</div>
+                {card.detail && <div className="dashboard-card__detail">{card.detail}</div>}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="chat__messages">
           {messages.length === 0 ? (

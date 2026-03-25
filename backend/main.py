@@ -307,6 +307,77 @@ def query_trace(trace_id: str):
     return {"trace_id": trace_id, "events": get_trace(trace_id)}
 
 
+# ─── Dashboard KPI Endpoint (T18) ─────────────────────────────────────────────
+@app.get("/api/dashboard")
+def get_dashboard():
+    """Return 5 aggregated KPI cards for the workspace landing state."""
+    adapter = get_db_adapter()
+
+    def _run(sql: str) -> list[dict]:
+        try:
+            return adapter.execute_query(sql)
+        except Exception:
+            return []
+
+    total_orders_rows = _run("SELECT COUNT(DISTINCT salesOrder) AS total FROM sales_order_headers LIMIT 1")
+    total_orders = total_orders_rows[0]["total"] if total_orders_rows else 0
+
+    complete_rows = _run("""
+        SELECT COUNT(DISTINCT soh.salesOrder) AS cnt
+        FROM sales_order_headers soh
+        JOIN outbound_delivery_items odi ON odi.referenceSdDocument = soh.salesOrder
+        JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+        JOIN payments p ON p.accountingDocument =
+            (SELECT bdh.accountingDocument FROM billing_document_headers bdh
+             WHERE bdh.billingDocument = bdi.billingDocument LIMIT 1)
+        LIMIT 1
+    """)
+    complete_cycles = complete_rows[0]["cnt"] if complete_rows else 0
+
+    unbilled_rows = _run("""
+        SELECT COUNT(DISTINCT odi.deliveryDocument) AS cnt
+        FROM outbound_delivery_items odi
+        LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+        WHERE odi.deliveryDocument IS NOT NULL AND bdi.billingDocument IS NULL
+        LIMIT 1
+    """)
+    never_billed = unbilled_rows[0]["cnt"] if unbilled_rows else 0
+
+    uncleared_rows = _run("""
+        SELECT COUNT(DISTINCT bdh.billingDocument) AS cnt
+        FROM billing_document_headers bdh
+        LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+        WHERE p.accountingDocument IS NULL AND bdh.accountingDocument IS NOT NULL
+        LIMIT 1
+    """)
+    uncleared = uncleared_rows[0]["cnt"] if uncleared_rows else 0
+
+    top_cust_rows = _run("""
+        SELECT COALESCE(bp.businessPartnerName, soh.soldToParty) AS name,
+               ROUND(SUM(soh.totalNetAmount), 2) AS total_amount
+        FROM sales_order_headers soh
+        LEFT JOIN business_partners bp ON bp.customer = soh.soldToParty
+        GROUP BY soh.soldToParty
+        ORDER BY total_amount DESC
+        LIMIT 1
+    """)
+    top_customer = top_cust_rows[0] if top_cust_rows else {"name": "—", "total_amount": 0}
+
+    completion_pct = round((complete_cycles / total_orders * 100), 1) if total_orders > 0 else 0
+
+    return {
+        "cards": [
+            {"id": "total_orders", "label": "Total Sales Orders", "value": total_orders, "icon": "📦", "trend": None},
+            {"id": "completion_rate", "label": "Complete O2C Cycles", "value": f"{completion_pct}%", "icon": "✅", "detail": f"{complete_cycles} of {total_orders}"},
+            {"id": "never_billed", "label": "Deliveries Never Billed", "value": never_billed, "icon": "⚠️", "severity": "warning"},
+            {"id": "uncleared", "label": "Uncleared Invoices", "value": uncleared, "icon": "🔴", "severity": "critical"},
+            {"id": "top_customer", "label": "Top Customer", "value": top_customer["name"], "icon": "🏆", "detail": f"${top_customer['total_amount']:,}"},
+        ]
+    }
+
+
+
+
 # ─── Static file serving (SPA catch-all) ──────────────────────────────────────
 # Pattern for React Router (history mode) in FastAPI:
 #  1. Mount /assets/ for hashed CSS/JS bundles (exact file matches)

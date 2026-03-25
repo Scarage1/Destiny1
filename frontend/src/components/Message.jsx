@@ -95,6 +95,41 @@ function SuggestionPills({ suggestions, onSend }) {
   )
 }
 
+
+/* ── SQL Explain Toggle (T20) ── */
+const EXPLAIN_TEMPLATES = {
+  trace_flow:     (plan) => `This query traces the end-to-end O2C journey for ${plan?.entity_type || "the document"} ${plan?.entity_id || ""}, joining sales orders → deliveries → billing documents → payments to show the full lifecycle status.`,
+  detect_anomaly: (plan) => `This query detects process anomalies${plan?.anomaly_sub_type ? ` (${plan.anomaly_sub_type.replaceAll("_", " ")})` : ""} by looking for records where expected downstream steps are missing — using LEFT JOIN to surface NULL gaps.`,
+  status_lookup:  (plan) => `This query looks up the current status of ${plan?.entity_type || "the document"} ${plan?.entity_id || ""} and checks if it has a linked payment or clearing entry.`,
+  analyze:        (plan) => `This query aggregates ${plan?.metric || "records"} by ${plan?.group_by || "category"}, ${plan?.operation === "max" ? "ranking highest first" : "ordered by volume"}, limited to the top results.`,
+  list:           (_)    => "This query lists records matching the requested filter criteria, ordered by the most relevant column.",
+}
+
+function SqlExplainer({ plan, sql }) {
+  const [show, setShow] = useState(false)
+  if (!plan || !sql) return null
+  const intent = plan.intent || "analyze"
+  const explainFn = EXPLAIN_TEMPLATES[intent] || EXPLAIN_TEMPLATES.analyze
+  return (
+    <div className="sql-explain-wrap">
+      <button
+        type="button"
+        className="message__toggle"
+        onClick={() => setShow(!show)}
+        aria-expanded={show}
+      >
+        {show ? "▾ Hide Explain" : "▸ Explain SQL"}
+      </button>
+      {show && (
+        <div className="sql-explain-text">
+          <span className="sql-explain-icon">🔍</span>
+          {explainFn(plan)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Message({ msg, onSend, advancedMode = false, onCopy }) {
   const [showSql, setShowSql]       = useState(false)
   const [copied, setCopied]         = useState(false)
@@ -203,6 +238,11 @@ export default function Message({ msg, onSend, advancedMode = false, onCopy }) {
             <div className="message__sql-label">SQL</div>
             {msg.sql}
           </div>
+        )}
+
+        {/* T20: SQL explain toggle */}
+        {showSql && msg.sql && (
+          <SqlExplainer plan={msg.plan} sql={msg.sql} />
         )}
 
         {/* T7: AI-suggested follow-up queries */}
