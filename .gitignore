@@ -34,8 +34,12 @@ pnpm-debug.log*
 !.vscode/settings.json
 
 # Data artifacts
+# Allow SAP source data files in git so they are included in Docker builds.
+# The generated SQLite database remains gitignored.
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/sap-o2c-data/
+!data/raw/sap-o2c-data/**
 data/*.db
 data/*.db-wal
 data/*.db-shm

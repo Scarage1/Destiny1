@@ -39,5 +39,14 @@ USER app
 ENV PORT=8000
 EXPOSE ${PORT}
 
-# Run with uvicorn; Azure injects $PORT at container start
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT} --workers 2"]
+# Startup: auto-ingest on first boot if DB is missing, then serve the app.
+CMD ["sh", "-c", "\
+  if [ ! -f /app/data/o2c.db ]; then \
+    echo '[startup] o2c.db not found — running ingestion...' && \
+    cd /app && python -m backend.ingest && \
+    echo '[startup] Ingestion complete.'; \
+  else \
+    echo '[startup] o2c.db exists — skipping ingestion.'; \
+  fi && \
+  uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2 \
+"]
