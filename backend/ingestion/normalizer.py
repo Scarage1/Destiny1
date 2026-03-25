@@ -38,7 +38,7 @@ def sanitize_date(val: Any) -> str | None:
     """Convert SAP /Date(ms)/ or YYYYMMDD to ISO-8601 string."""
     if not val:
         return None
-    if isinstance(val, (int, float)):
+    if isinstance(val, int | float):
         # Assume ms timestamp if it's huge, otherwise s
         ts = float(val) / 1000.0 if val > 1e11 else float(val)
         return datetime.fromtimestamp(ts, tz=UTC).isoformat()
@@ -74,7 +74,7 @@ def sanitize_number(val: Any) -> Any:
     """Coerce string numbers to float/int optimally, handle nulls."""
     if val is None or val == "":
         return None
-    if isinstance(val, (int, float)):
+    if isinstance(val, int | float):
         return val
     val_str = str(val).strip()
     if not val_str:

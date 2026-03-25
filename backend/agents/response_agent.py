@@ -128,7 +128,7 @@ def _deterministic_nl_summary(results: list[dict[str, Any]]) -> str:
         col
         for col in columns
         if col.lower().endswith(("count", "total", "amount", "qty", "quantity"))
-        and isinstance(first_row.get(col), (int, float))
+        and isinstance(first_row.get(col), int | float)
     ]
     dimension_candidates = [col for col in columns if col not in metric_candidates]
 
