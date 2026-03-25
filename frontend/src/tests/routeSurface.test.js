@@ -47,6 +47,16 @@ describe('route surfaces', () => {
     askQuery.mockReset()
     fetchTrace.mockReset()
 
+    // Stub all direct fetch() calls made by Workspace on mount
+    // (e.g. /api/dashboard, /api/health) — not covered by vi.mock('../api')
+    global.fetch = vi.fn((url) => {
+      if (String(url).includes('/api/dashboard')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ cards: [] }) })
+      }
+      // /api/health and any other endpoint: return ok with empty body
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+
     fetchGraphOverview.mockResolvedValue({
       nodes: [{ id: 'SalesOrder:1', type: 'SalesOrder' }],
       edges: [],
@@ -85,7 +95,7 @@ describe('route surfaces', () => {
     fireEvent.click(screen.getByTitle('Send'))
 
     await waitFor(() => {
-      expect(screen.getByText('Find broken flows')).toBeTruthy()
+      expect(screen.getAllByText('Find broken flows').length).toBeGreaterThan(0)
       expect(screen.getByText('Found 1 broken flow.')).toBeTruthy()
     })
   })

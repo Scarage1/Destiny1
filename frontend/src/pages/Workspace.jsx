@@ -279,10 +279,6 @@ export default function Workspace() {
     if (inputRef.current) {
       inputRef.current.style.height = 'auto'
     }
-    if (result?.intent || result?.status) {
-      addToHistory({ query: query.trim(), intent: result?.intent || result?.plan?.intent || 'analyze', status: result?.status || 'success' })
-      window.dispatchEvent(new CustomEvent('o2c_history_update'))
-    }
     setMessages(prev => [...prev, { role: 'user', text: q }])
     setIsQuerying(true)
     try {
@@ -290,6 +286,10 @@ export default function Workspace() {
       if (res.conversation_id) {
         setConversationId(res.conversation_id)
       }
+      // T10: Record this query in history panel
+      addToHistory({ query: q, intent: res.intent || res.plan?.intent || 'analyze', status: res.status || 'success' })
+      try { window.dispatchEvent(new CustomEvent('o2c_history_update')) } catch { /* ignore in test env */ }
+
       setMessages(prev => [...prev, {
         role: 'system',
         text: res.answer,
