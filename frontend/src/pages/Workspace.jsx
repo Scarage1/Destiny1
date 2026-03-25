@@ -67,7 +67,9 @@ export default function Workspace() {
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
   const [graphStats, setGraphStats] = useState({ total_nodes: 0, total_edges: 0 })
   const [loadingGraph, setLoadingGraph] = useState(true)
+  const [graphError, setGraphError] = useState(false)
   const [expandedNodes, setExpandedNodes] = useState(new Set())
+  const [backendOnline, setBackendOnline] = useState(true)
 
   // Inspector
   const [selectedNode, setSelectedNode] = useState(null)
@@ -104,9 +106,10 @@ export default function Workspace() {
   }, [messages, conversationId])
 
   // Load graph
-  useEffect(() => {
+  const loadGraph = useCallback(() => {
     let cancelled = false
     setLoadingGraph(true)
+    setGraphError(false)
     fetchGraphOverview()
       .then(data => {
         if (cancelled) return
@@ -123,10 +126,28 @@ export default function Workspace() {
         nodeSet.current = new Set(nodes.map(n => n.id))
         setGraphData({ nodes, links })
         setGraphStats(data.stats || { total_nodes: nodes.length, total_edges: links.length })
+        setBackendOnline(true)
         setLoadingGraph(false)
       })
-      .catch(() => setLoadingGraph(false))
+      .catch(() => {
+        if (cancelled) return
+        setGraphError(true)
+        setBackendOnline(false)
+        setLoadingGraph(false)
+      })
     return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => loadGraph(), [loadGraph])
+
+  // Health ping every 10s to drive the Live indicator
+  useEffect(() => {
+    const check = () =>
+      fetch('/api/health', { method: 'GET' })
+        .then(r => setBackendOnline(r.ok))
+        .catch(() => setBackendOnline(false))
+    const id = setInterval(check, 10000)
+    return () => clearInterval(id)
   }, [])
 
   // Auto-scroll chat
@@ -293,9 +314,9 @@ export default function Workspace() {
           </div>
         </div>
         <div className="topbar__right">
-          <div className="topbar__status">
+          <div className={`topbar__status${backendOnline ? '' : ' topbar__status--offline'}`}>
             <span className="topbar__status-dot" />
-            Live
+            {backendOnline ? 'Live' : 'Offline'}
           </div>
         </div>
       </div>
@@ -304,6 +325,16 @@ export default function Workspace() {
       <div className="graph-panel">
         {loadingGraph ? (
           <div className="graph-loading">Loading graph…</div>
+        ) : graphError ? (
+          <div className="graph-loading">
+            <p style={{ marginBottom: '0.75rem' }}>Backend unavailable — graph could not load.</p>
+            <button
+              onClick={loadGraph}
+              style={{ padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', background: 'var(--color-primary, #6f93d8)', color: '#fff', border: 'none', fontSize: '0.85rem' }}
+            >
+              Retry
+            </button>
+          </div>
         ) : (
           <ForceGraph2D
             ref={graphRef}

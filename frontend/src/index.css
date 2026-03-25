@@ -447,6 +447,10 @@ input:focus-visible {
   background: var(--success);
 }
 
+.topbar__status--offline .topbar__status-dot {
+  background: #ef4444;
+}
+
 /* Graph panel */
 .graph-panel {
   position: relative;
