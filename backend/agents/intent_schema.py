@@ -43,6 +43,7 @@ class IntentPlanV1(BaseModel):
     clarification: str | None = None
     follow_up: bool = False
     verification: Literal["required"] = "required"
+    anomaly_sub_type: str | None = None
 
 
 def validate_and_normalize_plan(raw_plan: dict[str, Any]) -> dict[str, Any]:

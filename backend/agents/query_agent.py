@@ -537,24 +537,216 @@ LIMIT 10
 """.strip()
 
     if intent == "detect_anomaly":
-        return """
+        anomaly_sub_type = (plan.get("anomaly_sub_type") or "").lower()
+
+        if anomaly_sub_type == "deliveries_not_billed":
+            return f"""
 SELECT
-    'delivery_without_billing' AS anomaly_type,
-    COUNT(DISTINCT odi.referenceSdDocument) AS anomaly_count
+    odi.deliveryDocument,
+    odi.referenceSdDocument AS salesOrder,
+    odh.creationDate AS deliveryDate,
+    odh.actualGoodsMovementDate AS goodsMovementDate
 FROM outbound_delivery_items odi
+JOIN outbound_delivery_headers odh ON odh.deliveryDocument = odi.deliveryDocument
 LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
-WHERE odi.referenceSdDocument IS NOT NULL
+WHERE odi.deliveryDocument IS NOT NULL
     AND bdi.billingDocument IS NULL
+ORDER BY odh.creationDate DESC, odi.deliveryDocument ASC
+LIMIT {limit}
+""".strip()
 
-UNION ALL
-
+        if anomaly_sub_type == "billed_not_delivered":
+            return f"""
 SELECT
-    'billing_without_delivery' AS anomaly_type,
-    COUNT(DISTINCT bdi.referenceSdDocument) AS anomaly_count
+    bdh.billingDocument,
+    bdi.referenceSdDocument AS deliveryReference,
+    bdh.billingDocumentDate,
+    ROUND(bdh.totalNetAmount, 2) AS net_amount,
+    bdh.transactionCurrency
 FROM billing_document_items bdi
+JOIN billing_document_headers bdh ON bdh.billingDocument = bdi.billingDocument
 LEFT JOIN outbound_delivery_headers odh ON odh.deliveryDocument = bdi.referenceSdDocument
 WHERE bdi.referenceSdDocument IS NOT NULL
     AND odh.deliveryDocument IS NULL
+ORDER BY bdh.billingDocumentDate DESC
+LIMIT {limit}
+""".strip()
+
+        if anomaly_sub_type == "billing_without_journal":
+            return f"""
+SELECT
+    bdh.billingDocument,
+    bdh.billingDocumentDate,
+    bdh.soldToParty AS customer,
+    ROUND(bdh.totalNetAmount, 2) AS net_amount,
+    bdh.transactionCurrency
+FROM billing_document_headers bdh
+LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+WHERE bdh.accountingDocument IS NULL OR p.accountingDocument IS NULL
+ORDER BY bdh.billingDocumentDate DESC
+LIMIT {limit}
+""".strip()
+
+        if anomaly_sub_type == "orphan_records":
+            return """
+SELECT 'delivery_no_sales_order' AS orphan_type,
+    odh.deliveryDocument AS entity_id,
+    odh.creationDate
+FROM outbound_delivery_headers odh
+LEFT JOIN outbound_delivery_items odi ON odi.deliveryDocument = odh.deliveryDocument
+LEFT JOIN sales_order_headers soh ON soh.salesOrder = odi.referenceSdDocument
+WHERE odi.referenceSdDocument IS NULL OR soh.salesOrder IS NULL
+
+UNION ALL
+
+SELECT 'billing_no_delivery' AS orphan_type,
+    bdh.billingDocument AS entity_id,
+    bdh.billingDocumentDate AS creationDate
+FROM billing_document_headers bdh
+JOIN billing_document_items bdi ON bdi.billingDocument = bdh.billingDocument
+LEFT JOIN outbound_delivery_headers odh ON odh.deliveryDocument = bdi.referenceSdDocument
+WHERE bdi.referenceSdDocument IS NULL OR odh.deliveryDocument IS NULL
+
+LIMIT 100
+""".strip()
+
+        if anomaly_sub_type == "avg_steps_per_order":
+            return """
+SELECT
+    ROUND(AVG(steps_completed), 2) AS avg_steps_per_order,
+    COUNT(*) AS total_orders,
+    SUM(CASE WHEN steps_completed >= 4 THEN 1 ELSE 0 END) AS fully_complete_orders
+FROM (
+    SELECT
+        soh.salesOrder,
+        1
+        + CASE WHEN odi.deliveryDocument IS NOT NULL THEN 1 ELSE 0 END
+        + CASE WHEN bdi.billingDocument IS NOT NULL THEN 1 ELSE 0 END
+        + CASE WHEN p.accountingDocument IS NOT NULL THEN 1 ELSE 0 END
+        AS steps_completed
+    FROM sales_order_headers soh
+    LEFT JOIN outbound_delivery_items odi ON odi.referenceSdDocument = soh.salesOrder
+    LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+    LEFT JOIN billing_document_headers bdh ON bdh.billingDocument = bdi.billingDocument
+    LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+    GROUP BY soh.salesOrder
+) t
+""".strip()
+
+        if anomaly_sub_type == "completion_rate":
+            return """
+SELECT
+    COUNT(*) AS total_orders,
+    SUM(CASE WHEN steps_completed >= 4 THEN 1 ELSE 0 END) AS fully_complete,
+    ROUND(
+        100.0 * SUM(CASE WHEN steps_completed >= 4 THEN 1 ELSE 0 END) / COUNT(*),
+        2
+    ) AS completion_rate_pct
+FROM (
+    SELECT
+        soh.salesOrder,
+        1
+        + CASE WHEN odi.deliveryDocument IS NOT NULL THEN 1 ELSE 0 END
+        + CASE WHEN bdi.billingDocument IS NOT NULL THEN 1 ELSE 0 END
+        + CASE WHEN p.accountingDocument IS NOT NULL THEN 1 ELSE 0 END
+        AS steps_completed
+    FROM sales_order_headers soh
+    LEFT JOIN outbound_delivery_items odi ON odi.referenceSdDocument = soh.salesOrder
+    LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+    LEFT JOIN billing_document_headers bdh ON bdh.billingDocument = bdi.billingDocument
+    LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+    GROUP BY soh.salesOrder
+) t
+""".strip()
+
+        if anomaly_sub_type == "bottleneck_analysis":
+            return """
+SELECT 'order_to_delivery' AS pipeline_step,
+    COUNT(CASE WHEN odi.deliveryDocument IS NULL THEN 1 END) AS records_stuck
+FROM sales_order_headers soh
+LEFT JOIN outbound_delivery_items odi ON odi.referenceSdDocument = soh.salesOrder
+
+UNION ALL
+
+SELECT 'delivery_to_billing' AS pipeline_step,
+    COUNT(CASE WHEN bdi.billingDocument IS NULL THEN 1 END) AS records_stuck
+FROM outbound_delivery_items odi
+LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+
+UNION ALL
+
+SELECT 'billing_to_payment' AS pipeline_step,
+    COUNT(CASE WHEN p.accountingDocument IS NULL OR p.clearingDate IS NULL THEN 1 END) AS records_stuck
+FROM billing_document_headers bdh
+LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+""".strip()
+
+        if anomaly_sub_type == "payment_delay":
+            return f"""
+SELECT
+    bdh.billingDocument,
+    bdh.billingDocumentDate,
+    p.clearingDate AS paymentDate,
+    CAST(julianday(p.clearingDate) - julianday(bdh.billingDocumentDate) AS INTEGER) AS days_to_payment,
+    ROUND(bdh.totalNetAmount, 2) AS net_amount,
+    bdh.transactionCurrency
+FROM billing_document_headers bdh
+JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+WHERE p.clearingDate IS NOT NULL AND bdh.billingDocumentDate IS NOT NULL
+    AND p.clearingDate > bdh.billingDocumentDate
+ORDER BY days_to_payment DESC
+LIMIT {limit}
+""".strip()
+
+        if anomaly_sub_type == "customer_failure_rate":
+            return f"""
+SELECT
+    COALESCE(bp.businessPartnerName, bp.businessPartnerFullName, soh.soldToParty) AS customerName,
+    soh.soldToParty AS customer,
+    COUNT(DISTINCT soh.salesOrder) AS total_orders,
+    COUNT(DISTINCT CASE WHEN p.accountingDocument IS NULL OR p.clearingDate IS NULL
+        THEN soh.salesOrder END) AS incomplete_orders,
+    ROUND(
+        100.0 * COUNT(DISTINCT CASE WHEN p.accountingDocument IS NULL OR p.clearingDate IS NULL
+            THEN soh.salesOrder END) / COUNT(DISTINCT soh.salesOrder),
+        1
+    ) AS incomplete_rate_pct
+FROM sales_order_headers soh
+LEFT JOIN outbound_delivery_items odi ON odi.referenceSdDocument = soh.salesOrder
+LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+LEFT JOIN billing_document_headers bdh ON bdh.billingDocument = bdi.billingDocument
+LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+LEFT JOIN business_partners bp ON bp.customer = soh.soldToParty
+WHERE soh.soldToParty IS NOT NULL
+GROUP BY soh.soldToParty
+HAVING COUNT(DISTINCT soh.salesOrder) > 0
+ORDER BY incomplete_rate_pct DESC, total_orders DESC
+LIMIT {limit}
+""".strip()
+
+        # Generic anomaly summary fallback
+        return """
+SELECT 'delivery_without_billing' AS anomaly_type,
+    COUNT(DISTINCT odi.deliveryDocument) AS anomaly_count
+FROM outbound_delivery_items odi
+LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
+WHERE odi.deliveryDocument IS NOT NULL AND bdi.billingDocument IS NULL
+
+UNION ALL
+
+SELECT 'billing_without_delivery' AS anomaly_type,
+    COUNT(DISTINCT bdi.referenceSdDocument) AS anomaly_count
+FROM billing_document_items bdi
+LEFT JOIN outbound_delivery_headers odh ON odh.deliveryDocument = bdi.referenceSdDocument
+WHERE bdi.referenceSdDocument IS NOT NULL AND odh.deliveryDocument IS NULL
+
+UNION ALL
+
+SELECT 'billing_without_payment' AS anomaly_type,
+    COUNT(DISTINCT bdh.billingDocument) AS anomaly_count
+FROM billing_document_headers bdh
+LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
+WHERE p.accountingDocument IS NULL OR p.clearingDate IS NULL
 
 LIMIT 100
 """.strip()

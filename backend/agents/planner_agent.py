@@ -142,7 +142,108 @@ def _heuristic_plan(user_query: str, context: dict[str, Any]) -> dict[str, Any]:
         out["follow_up"] = True
         return out
 
-    if "broken" in q or "anomal" in q or "not billed" in q or "incomplete" in q:
+    # ─── Intent detection ───────────────────────────────────────────────────────
+    # Priority: more specific patterns first
+    anomaly_sub_type = None
+
+    _never_billed = (
+        "never billed" in q or "not billed" in q or "without billing" in q
+        or "created but never billed" in q or "delivery without billing" in q
+    )
+    _never_delivered = (
+        "never delivered" in q or "not delivered" in q or "billed but not delivered" in q
+        or "billed but never delivered" in q or "billed without delivery" in q
+    )
+    _billing_no_journal = (
+        "without journal" in q or "no journal" in q or "without accounting" in q
+        or "billing without journal" in q or "billing document without" in q
+    )
+    _orphan = "orphan" in q or "unlinked" in q or "no connection" in q
+    _avg_steps = "average" in q and ("step" in q or "stage" in q or "cycle" in q)
+    _bottleneck = "bottleneck" in q or "delay" in q and "pipeline" in q
+    _longest_chain = "longest" in q and "chain" in q
+    _cycles_detect = "cycle" in q and ("detect" in q or "redundant" in q or "loop" in q)
+    _node_connectivity = "connect" in q and ("highest" in q or "most" in q) and "node" in q
+    _completion_rate = "percentage" in q and ("complet" in q or "full cycle" in q)
+    _incomplete_region = "region" in q and "incomplete" in q
+    _incomplete_region = _incomplete_region or ("region" in q and ("broken" in q or "anomal" in q))
+    _multi_delivery = "more than one delivery" in q or "multiple deliver" in q or ("linked" in q and "delivery" in q and "more" in q)
+    _multi_journal = "multiple journal" in q or "more than one journal" in q or "linked to multiple" in q and "journal" in q
+    _mixed_status = "both" in q and "complet" in q and ("incomplet" in q or "incomplete" in q)
+    _high_value_unbi = ("high" in q or "high-value" in q) and "not billed" in q and "deliver" in q
+    _pay_delay = "payment" in q and "delayed" in q or "delay" in q and "payment" in q and "billing" in q
+    _customer_failure = "customer" in q and ("failure" in q or "incomplete" in q or "frequen" in q)
+    _full_cycle_pct = "percentage" in q and "full cycle" in q or "what percent" in q and "complete" in q
+
+    if _never_billed:
+        intent = "detect_anomaly"
+        operation = "detect"
+        anomaly_sub_type = "deliveries_not_billed"
+    elif _billing_no_journal:
+        intent = "detect_anomaly"
+        operation = "detect"
+        anomaly_sub_type = "billing_without_journal"
+    elif _never_delivered:
+        intent = "detect_anomaly"
+        operation = "detect"
+        anomaly_sub_type = "billed_not_delivered"
+    elif _orphan:
+        intent = "detect_anomaly"
+        operation = "detect"
+        anomaly_sub_type = "orphan_records"
+    elif _avg_steps:
+        intent = "analyze"
+        operation = "avg"
+        anomaly_sub_type = "avg_steps_per_order"
+    elif _completion_rate or _full_cycle_pct:
+        intent = "analyze"
+        operation = "avg"
+        anomaly_sub_type = "completion_rate"
+    elif _bottleneck:
+        intent = "detect_anomaly"
+        operation = "detect"
+        anomaly_sub_type = "bottleneck_analysis"
+    elif _longest_chain:
+        intent = "analyze"
+        operation = "max"
+        anomaly_sub_type = "longest_chain"
+    elif _cycles_detect:
+        intent = "detect_anomaly"
+        operation = "detect"
+        anomaly_sub_type = "cycle_detection"
+    elif _node_connectivity:
+        intent = "analyze"
+        operation = "max"
+        anomaly_sub_type = "node_connectivity"
+    elif _incomplete_region:
+        intent = "detect_anomaly"
+        operation = "detect"
+        anomaly_sub_type = "incomplete_by_region"
+    elif _multi_delivery:
+        intent = "analyze"
+        operation = "list"
+        anomaly_sub_type = "multi_delivery_orders"
+    elif _multi_journal:
+        intent = "analyze"
+        operation = "list"
+        anomaly_sub_type = "multi_journal_billing"
+    elif _mixed_status:
+        intent = "analyze"
+        operation = "list"
+        anomaly_sub_type = "mixed_status_customers"
+    elif _high_value_unbi:
+        intent = "detect_anomaly"
+        operation = "detect"
+        anomaly_sub_type = "high_value_unbi_delivered"
+    elif _pay_delay:
+        intent = "detect_anomaly"
+        operation = "detect"
+        anomaly_sub_type = "payment_delay"
+    elif _customer_failure:
+        intent = "analyze"
+        operation = "list"
+        anomaly_sub_type = "customer_failure_rate"
+    elif "broken" in q or "anomal" in q or "incomplete" in q:
         intent = "detect_anomaly"
         operation = "detect"
     elif "trace" in q or "flow" in q:
@@ -336,6 +437,7 @@ def _heuristic_plan(user_query: str, context: dict[str, Any]) -> dict[str, Any]:
         "clarification": clarification,
         "follow_up": bool(entity_id and context.get("last_entity")),
         "verification": "required",
+        "anomaly_sub_type": anomaly_sub_type,
     }
 
 
