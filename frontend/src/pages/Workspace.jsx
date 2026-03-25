@@ -94,13 +94,16 @@ export default function Workspace() {
   })
 
   // W3-1: Auto-send queries coming from landing page sample chips (?q=...)
+  // Guard: only fire if no prior session was restored — prevents duplicate sends
   const [searchParams, setSearchParams] = useSearchParams()
   useEffect(() => {
     const presetQ = searchParams.get('q')
     if (presetQ) {
-      setSearchParams({}, { replace: true }) // clear param from URL
-      // Delay slightly so graph/session restore finishes first
-      setTimeout(() => handleSend(presetQ), 600)
+      setSearchParams({}, { replace: true }) // always clear the URL param
+      // Only auto-send if workspace is truly fresh (no restored messages)
+      if (messages.length === 0) {
+        setTimeout(() => handleSend(presetQ), 400)
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
