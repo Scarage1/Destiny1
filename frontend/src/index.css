@@ -2421,13 +2421,13 @@ details[open] .results-section__title::before {
 
 .hpanel {
   position: fixed;
-  top: 0;
+  top: 48px;  /* W2-3: sit below topbar so nav controls remain accessible */
   right: -320px;
   width: 300px;
-  height: 100vh;
+  height: calc(100vh - 48px);
   background: var(--bg-elevated);
   border-left: 1px solid var(--border);
-  z-index: 200;
+  z-index: 90;  /* W2-3: below topbar z-index so history never covers nav */
   display: flex;
   flex-direction: column;
   transition: right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
