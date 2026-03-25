@@ -65,14 +65,6 @@ async def lifespan(app: FastAPI):
             g.number_of_edges(),
         )
 
-    # Mount frontend static files only when SERVE_STATIC=true (Docker / Azure).
-    # Mounting here (after lifespan starts) ensures all /api/* routes defined earlier
-    # take priority. Never enabled during pytest runs.
-    _frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
-    if os.environ.get("SERVE_STATIC", "").lower() == "true" and _frontend_dist.is_dir():
-        app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="ui")
-        logger.info("Serving frontend from %s", _frontend_dist)
-
     yield
 
 
@@ -101,9 +93,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static files are mounted LAST in the lifespan (after all API routes are registered)
-# so that /api/* routes always take precedence. Gate on SERVE_STATIC=true so tests
-# (which have a built dist/) are never affected.
+# NOTE: Static files are mounted AFTER all API routes at module level (see bottom of file).
+# This ensures /api/* routes take precedence. Guarded by SERVE_STATIC=true.
 
 
 # --- Request/Response Models ---
@@ -159,20 +150,22 @@ class SubgraphResponse(BaseModel):
     stats: dict[str, Any]
 
 
-# --- Health ---
+# Only expose the JSON root metadata when NOT serving the React SPA.
+# When SERVE_STATIC=true the index.html from the static mount handles GET /.
+_SERVE_STATIC = os.environ.get("SERVE_STATIC", "").lower() == "true"
 
 
-@app.get("/")
-def root(request: Request):
-    base = str(request.base_url).rstrip("/")
-    serve_static = os.environ.get("SERVE_STATIC", "").lower() == "true"
-    return {
-        "message": "O2C Graph Intelligence backend is running.",
-        "health": f"{base}/api/health",
-        "graph_overview": f"{base}/api/graph/overview",
-        "query_endpoint": f"{base}/api/query/ask",
-        "frontend": base if serve_static else "http://localhost:3000 (dev)",
-    }
+if not _SERVE_STATIC:
+    @app.get("/")
+    def root(request: Request):
+        base = str(request.base_url).rstrip("/")
+        return {
+            "message": "O2C Graph Intelligence backend is running.",
+            "health": f"{base}/api/health",
+            "graph_overview": f"{base}/api/graph/overview",
+            "query_endpoint": f"{base}/api/query/ask",
+            "frontend": "http://localhost:3000 (dev)",
+        }
 
 
 @app.get("/api/health")
@@ -292,6 +285,21 @@ def ask_query(request: QueryRequest):
 @app.get("/api/query/trace/{trace_id}")
 def query_trace(trace_id: str):
     return {"trace_id": trace_id, "events": get_trace(trace_id)}
+
+
+# ─── Static file serving (SPA catch-all) ──────────────────────────────────────
+# Mounted AFTER all /api/* routes so they always take precedence.
+# Enabled only when SERVE_STATIC=true (Docker / Azure). Never in dev or tests.
+_frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+if _SERVE_STATIC and _frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="ui")
+    logger.info("Serving frontend SPA from %s", _frontend_dist)
+elif _SERVE_STATIC:
+    logger.warning(
+        "SERVE_STATIC=true but frontend/dist not found at %s — "
+        "ensure the Docker image was built with the frontend stage.",
+        _frontend_dist,
+    )
 
 
 if __name__ == "__main__":
