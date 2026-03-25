@@ -280,6 +280,9 @@ export default function Workspace() {
       inputRef.current.style.height = 'auto'
     }
     setMessages(prev => [...prev, { role: 'user', text: q }])
+    // W1-4: Immediately show loading bubble so user knows query was received
+    const loadingId = `loading-${Date.now()}`
+    setMessages(prev => [...prev, { role: 'system', _loading: true, _id: loadingId }])
     setIsQuerying(true)
     try {
       const res = await askQuery(q, conversationId)
@@ -290,32 +293,40 @@ export default function Workspace() {
       addToHistory({ query: q, intent: res.intent || res.plan?.intent || 'analyze', status: fromHistory ? 'rerun' : (res.status || 'success') })
       try { window.dispatchEvent(new CustomEvent('o2c_history_update')) } catch { /* ignore in test env */ }
 
-      setMessages(prev => [...prev, {
-        role: 'system',
-        text: res.answer,
-        sql: res.query,
-        totalResults: res.total_results,
-        status: res.status,
-        intent: res.intent,
-        traceId: res.trace_id,
-        plan: res.plan,
-        verification: res.verification,
-        traceEvents: (res.agent_trace && res.agent_trace.events) ? res.agent_trace.events : [],
-        referencedNodes: res.referenced_nodes || [],
-      }])
+      // W1-4: Replace loading bubble with real response
+      setMessages(prev => {
+        const withoutLoading = prev.filter(m => m._id !== loadingId)
+        return [...withoutLoading, {
+          role: 'system',
+          text: res.answer,
+          sql: res.query,
+          totalResults: res.total_results,
+          status: res.status,
+          intent: res.intent,
+          traceId: res.trace_id,
+          plan: res.plan,
+          verification: res.verification,
+          traceEvents: (res.agent_trace && res.agent_trace.events) ? res.agent_trace.events : [],
+          referencedNodes: res.referenced_nodes || [],
+        }]
+      })
+      // W1-5: Only track latency for real query responses, not guard rejections
+      if (res.status !== 'rejected') setQueryLatencyMs(Math.round(performance.now() - startedAt))
       if (res.referenced_nodes?.length > 0) {
         setHighlightedNodes(new Set(res.referenced_nodes))
       } else {
         setHighlightedNodes(new Set())
       }
     } catch (err) {
-      setMessages(prev => [...prev, {
-        role: 'system',
-        text: `Something went wrong. ${err?.message || 'Please try again.'}`,
-        status: 'error',
-      }])
+      setMessages(prev => {
+        const withoutLoading = prev.filter(m => m._id !== loadingId)
+        return [...withoutLoading, {
+          role: 'system',
+          text: `Something went wrong. ${err?.message || 'Please try again.'}`,
+          status: 'error',
+        }]
+      })
     } finally {
-      setQueryLatencyMs(Math.round(performance.now() - startedAt))
       setIsQuerying(false)
     }
   }

@@ -139,6 +139,18 @@ const Message = React.memo(function Message({ msg, onSend, advancedMode = false,
   const isClarification = msg.status === 'clarification'
 
   const roleClass   = msg.role === 'user' ? 'message--user' : 'message--system'
+
+  // W1-4: Loading skeleton — shown while API call is in-flight
+  if (msg._loading) {
+    return (
+      <div className="message message--system">
+        <div className="message__loading">
+          <span /><span /><span />
+        </div>
+      </div>
+    )
+  }
+
   const statusClass = msg.status === 'rejected'     ? ' message--rejected'
     : msg.status === 'error'         ? ' message--error'
     : msg.status === 'clarification' ? ' message--clarification'
@@ -260,7 +272,8 @@ const Message = React.memo(function Message({ msg, onSend, advancedMode = false,
           </div>
         )}
 
-        {showTrace && msg.traceId && (
+        {/* W1-2: Hide agent trace on guard rejections — content already in bubble */}
+        {showTrace && msg.traceId && msg.status !== 'rejected' && (
           <AgentTracePanel
             intent={msg.intent}
             plan={msg.plan}

@@ -319,39 +319,39 @@ def get_dashboard():
         except Exception:
             return []
 
-    total_orders_rows = _run("SELECT COUNT(DISTINCT salesOrder) AS total FROM sales_order_headers LIMIT 1")
+    total_orders_rows = _run("SELECT COUNT(DISTINCT salesOrder) AS total FROM sales_order_headers")
     total_orders = total_orders_rows[0]["total"] if total_orders_rows else 0
 
+    # Complete O2C cycle: salesOrder → delivery → billing → payment
     complete_rows = _run("""
         SELECT COUNT(DISTINCT soh.salesOrder) AS cnt
         FROM sales_order_headers soh
         JOIN outbound_delivery_items odi ON odi.referenceSdDocument = soh.salesOrder
         JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
-        JOIN payments p ON p.accountingDocument =
-            (SELECT bdh.accountingDocument FROM billing_document_headers bdh
-             WHERE bdh.billingDocument = bdi.billingDocument LIMIT 1)
-        LIMIT 1
+        JOIN billing_document_headers bdh ON bdh.billingDocument = bdi.billingDocument
+        JOIN payments p ON p.accountingDocument = bdh.accountingDocument
     """)
     complete_cycles = complete_rows[0]["cnt"] if complete_rows else 0
 
+    # Deliveries with no matching billing document
     unbilled_rows = _run("""
         SELECT COUNT(DISTINCT odi.deliveryDocument) AS cnt
         FROM outbound_delivery_items odi
         LEFT JOIN billing_document_items bdi ON bdi.referenceSdDocument = odi.deliveryDocument
         WHERE odi.deliveryDocument IS NOT NULL AND bdi.billingDocument IS NULL
-        LIMIT 1
     """)
     never_billed = unbilled_rows[0]["cnt"] if unbilled_rows else 0
 
+    # Billing docs with no payment settled
     uncleared_rows = _run("""
         SELECT COUNT(DISTINCT bdh.billingDocument) AS cnt
         FROM billing_document_headers bdh
         LEFT JOIN payments p ON p.accountingDocument = bdh.accountingDocument
-        WHERE p.accountingDocument IS NULL AND bdh.accountingDocument IS NOT NULL
-        LIMIT 1
+        WHERE bdh.accountingDocument IS NOT NULL AND p.accountingDocument IS NULL
     """)
     uncleared = uncleared_rows[0]["cnt"] if uncleared_rows else 0
 
+    # Top customer by total net amount
     top_cust_rows = _run("""
         SELECT COALESCE(bp.businessPartnerName, soh.soldToParty) AS name,
                ROUND(SUM(soh.totalNetAmount), 2) AS total_amount
@@ -367,10 +367,10 @@ def get_dashboard():
 
     return {
         "cards": [
-            {"id": "total_orders",    "label": "Orders",      "value": total_orders},
-            {"id": "completion_rate", "label": "Complete",    "value": f"{completion_pct}%"},
+            {"id": "total_orders",    "label": "Orders",       "value": total_orders},
+            {"id": "completion_rate", "label": "Complete",     "value": f"{completion_pct}%"},
             {"id": "never_billed",    "label": "Never Billed", "value": never_billed, "severity": "warning"},
-            {"id": "uncleared",       "label": "Uncleared",   "value": uncleared, "severity": "critical"},
+            {"id": "uncleared",       "label": "Uncleared",    "value": uncleared, "severity": "critical"},
             {"id": "top_customer",    "label": "Top Customer", "value": top_customer["name"]},
         ]
     }
