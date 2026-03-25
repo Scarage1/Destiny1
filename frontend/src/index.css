@@ -1600,9 +1600,13 @@ textarea:focus-visible {
   }
 }
 
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — TABLET  (≤1200px)
+   ═══════════════════════════════════════════════ */
+
 @media (max-width: 1200px) {
   .workspace {
-    grid-template-columns: 1fr 356px;
+    grid-template-columns: 1fr 340px;
   }
 
   .topbar__stats {
@@ -1615,19 +1619,203 @@ textarea:focus-visible {
   }
 }
 
-@media (max-width: 640px) {
-  .topbar__brand {
-    font-size: 13px;
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — MOBILE  (≤768px)
+   Full tab-based workspace layout for phones.
+   ═══════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Landing ── */
+  .landing-nav {
+    padding: 12px 16px;
+  }
+
+  .landing-nav__cta {
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+
+  .hero {
+    padding: 64px 20px 32px;
+  }
+
+  .hero__shortcut {
+    display: none;
+  }
+
+  .features {
+    padding: 56px 16px;
+  }
+
+  .features__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feature {
+    padding: 28px 20px;
+  }
+
+  .trust {
+    padding: 56px 16px 48px;
+  }
+
+  .trust__items {
+    gap: 32px;
+  }
+
+  .trust__item-value {
+    font-size: 26px;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    padding: 20px 16px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+
+  /* ── Workspace Layout ──
+     Switch from 2-col grid → single column with
+     a bottom tab-bar to swap Graph / Chat panels. */
+  .workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: 52px 1fr 52px;
+  }
+
+  .graph-panel,
+  .chat-panel {
+    grid-row: 2;
+    grid-column: 1;
+  }
+
+  .chat-panel {
+    border-left: none;
+    border-top: 1px solid rgba(15, 23, 42, 0.07);
+  }
+
+  /* Active/hidden state driven by data-tab attr on .workspace */
+  .workspace[data-tab="graph"] .chat-panel  { display: none; }
+  .workspace[data-tab="chat"]  .graph-panel { display: none; }
+
+  /* ── Tab bar  ── */
+  .ws-tab-bar {
+    grid-row: 3;
+    grid-column: 1;
+    display: flex;
+    border-top: 1px solid rgba(15, 23, 42, 0.09);
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .ws-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: color var(--transition);
+    min-height: 52px;
+  }
+
+  .ws-tab__icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .ws-tab--active {
+    color: var(--accent);
+  }
+
+  .ws-tab--active .ws-tab__icon {
+    transform: scale(1.08);
+  }
+
+  /* ── Topbar on mobile ── */
+  .topbar {
+    padding: 0 12px;
   }
 
   .topbar__stats {
+    display: none;
+  }
+
+  .topbar__status span:not(.topbar__status-dot) {
+    display: none;
+  }
+
+  /* ── Graph panel ── */
+  .graph-legend {
+    bottom: 8px;
+    left: 8px;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .legend-item {
     font-size: 10px;
-    gap: 7px;
+  }
+
+  .graph-controls {
+    bottom: 8px;
+    right: 8px;
+  }
+
+  .graph-controls__btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  /* Node tooltip — full-width bottom sheet on mobile */
+  .node-tooltip {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 55vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-bottom: none;
+    animation: slideUp 200ms ease;
+  }
+
+  /* ── Chat panel ── */
+  .chat__header {
+    padding: 10px 14px;
+  }
+
+  .chat__messages {
+    padding: 12px;
+  }
+
+  .chat__input-area {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .chat__input {
+    font-size: 16px;
+  }
+
+  .chat__send-btn {
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .chat__welcome {
-    padding: 14px;
-    gap: 12px;
+    padding: 20px 14px;
+    gap: 14px;
   }
 
   .chat__welcome-title {
@@ -1638,18 +1826,41 @@ textarea:focus-visible {
     font-size: 13px;
   }
 
+  .chat__examples {
+    gap: 8px;
+  }
+
   .chat__example {
     font-size: 12px;
-    padding: 8px 10px;
+    padding: 10px 12px;
+    min-height: 44px;
+    align-items: center;
   }
 
   .message__bubble {
-    max-width: 92%;
-    font-size: 12px;
-    padding: 9px 11px;
+    max-width: 94%;
+    font-size: 13px;
+    padding: 10px 12px;
   }
 
-  .node-tooltip {
-    width: min(280px, calc(100% - 24px));
+  /* Agent trace panel */
+  .trace-panel {
+    margin: 6px;
+    border-radius: var(--radius);
   }
+
+  .trace__toggle {
+    padding: 8px 10px;
+    min-height: 40px;
+  }
+
+  .trace__content {
+    padding: 10px;
+  }
+}
+
+/* ─── Slide-up animation for mobile tooltip bottom sheet ─── */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }

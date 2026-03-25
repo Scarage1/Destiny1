@@ -84,6 +84,9 @@ export default function Workspace() {
   const [queryLatencyMs, setQueryLatencyMs] = useState(null)
   const [conversationId, setConversationId] = useState(initialSession.conversationId)
 
+  // Mobile tab — 'graph' or 'chat'
+  const [mobileTab, setMobileTab] = useState('chat')
+
   // Refs
   const graphRef = useRef()
   const messagesEndRef = useRef()
@@ -328,7 +331,7 @@ export default function Workspace() {
   }, [highlightedNodes, selectedNode])
 
   return (
-    <div className="workspace">
+    <div className="workspace" data-tab={mobileTab}>
       {/* Top bar */}
       <div className="topbar">
         <div className="topbar__left">
@@ -482,6 +485,30 @@ export default function Workspace() {
             </button>
           </form>
         </div>
+      </div>
+
+      {/* ── Mobile tab bar — hidden on desktop via CSS ── */}
+      <div className="ws-tab-bar" role="tablist" aria-label="Workspace sections">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobileTab === 'graph'}
+          className={`ws-tab${mobileTab === 'graph' ? ' ws-tab--active' : ''}`}
+          onClick={() => setMobileTab('graph')}
+        >
+          <span className="ws-tab__icon">🕸️</span>
+          Graph
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobileTab === 'chat'}
+          className={`ws-tab${mobileTab === 'chat' ? ' ws-tab--active' : ''}`}
+          onClick={() => { setMobileTab('chat'); setTimeout(() => inputRef.current?.focus(), 100) }}
+        >
+          <span className="ws-tab__icon">💬</span>
+          Ask
+        </button>
       </div>
     </div>
   )
