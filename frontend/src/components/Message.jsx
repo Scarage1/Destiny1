@@ -76,6 +76,8 @@ export default function Message({ msg, onSend, advancedMode = false, onCopy }) {
   const [showDetails, setShowDetails] = useState(false)
   const shouldAutoOpenTrace = ['blocked', 'rejected', 'error'].includes(msg.status)
   const [showTrace, setShowTrace] = useState(shouldAutoOpenTrace)
+  // Don't show details/trace controls for clarification messages — they have no SQL/trace
+  const isClarification = msg.status === 'clarification'
 
   useEffect(() => {
     if (shouldAutoOpenTrace) {
@@ -124,37 +126,44 @@ export default function Message({ msg, onSend, advancedMode = false, onCopy }) {
   return (
     <div className={`message ${roleClass}${statusClass}`}>
       <div className="message__bubble">
-        <div className="message__text" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
+        <div className="message__text">{msg.text}</div>
+
+        {/* Result info strip — system messages only, not clarifications */}
         {msg.role !== 'user' && msg.status !== 'clarification' && (
-          <div className="message__result-title">{resultTitle}</div>
-        )}
-        {msg.role !== 'user' && (
           <div className="message__trust-strip">
-            {msg.totalResults != null && <span>results: {msg.totalResults}</span>}
+            {msg.totalResults != null && (
+              <span className="message__results-badge">
+                {msg.totalResults} result{msg.totalResults !== 1 ? 's' : ''}
+              </span>
+            )}
             <button
               type="button"
-              className="message__copy-btn"
+              className={`message__copy-btn${copied ? ' message__copy-btn--copied' : ''}`}
               onClick={handleCopy}
             >
-              {copied ? 'Copied' : 'Copy'}
+              {copied ? '✓ Copied' : '⎘ Copy'}
             </button>
             {advancedMode && (
               <button
                 type="button"
-                className="message__copy-btn"
+                className={`message__copy-btn${copiedMd ? ' message__copy-btn--copied' : ''}`}
                 onClick={handleCopyMarkdown}
               >
-                {copiedMd ? 'MD Copied' : 'Copy MD'}
+                {copiedMd ? '✓ MD' : '⎘ MD'}
               </button>
             )}
           </div>
         )}
+
+        {/* Intent layer — hidden by default, only shown in advanced mode */}
         {msg.role !== 'user' && (
           <div className={`message__intent-layer ${advancedMode ? 'message__intent-layer--visible' : ''}`}>
             <strong>Intent Layer:</strong> {intentLayer.intent} · entity: {intentLayer.entityType} ({intentLayer.entityId}) · metric: {intentLayer.metric} · group by: {intentLayer.groupBy}
           </div>
         )}
-        {(msg.sql || msg.traceId) && (
+
+        {/* Collapsible details — skip for clarification messages */}
+        {(msg.sql || msg.traceId) && !isClarification && (
           <>
             <button
               className="message__toggle"
@@ -191,17 +200,16 @@ export default function Message({ msg, onSend, advancedMode = false, onCopy }) {
             )}
           </>
         )}
+
+        {/* SQL block */}
         {showSql && msg.sql && (
           <div className="message__sql">
             <div className="message__sql-label">SQL</div>
             {msg.sql}
           </div>
         )}
-        {msg.totalResults != null && (
-          <div className="message__results-count">
-            {msg.totalResults} result{msg.totalResults !== 1 ? 's' : ''} returned
-          </div>
-        )}
+
+        {/* Clarification suggestions as pill buttons */}
         {clarificationSuggestions.length > 0 && (
           <div className="clarification-suggestions">
             {clarificationSuggestions.map((q, idx) => (
@@ -216,17 +224,17 @@ export default function Message({ msg, onSend, advancedMode = false, onCopy }) {
             ))}
           </div>
         )}
+
+        {/* Agent trace panel */}
         {showTrace && msg.traceId && (
-          <>
-            <AgentTracePanel
-              intent={msg.intent}
-              plan={msg.plan}
-              verification={msg.verification}
-              traceEvents={msg.traceEvents || []}
-              sql={msg.sql}
-              totalResults={msg.totalResults}
-            />
-          </>
+          <AgentTracePanel
+            intent={msg.intent}
+            plan={msg.plan}
+            verification={msg.verification}
+            traceEvents={msg.traceEvents || []}
+            sql={msg.sql}
+            totalResults={msg.totalResults}
+          />
         )}
       </div>
     </div>

@@ -4,7 +4,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-
 IntentType = Literal["trace_flow", "detect_anomaly", "status_lookup", "analyze"]
 EntityType = Literal["invoice", "sales_order", "delivery", "payment", "customer", "product", "plant"]
 MetricType = Literal[

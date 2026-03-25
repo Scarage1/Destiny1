@@ -3,9 +3,10 @@ SQLite database manager for the SAP O2C dataset.
 Handles schema creation, connection management, and query execution.
 """
 
+import re
 import sqlite3
-from pathlib import Path
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Any
 
 DB_PATH = Path(__file__).parent.parent / "data" / "o2c.db"
@@ -63,11 +64,14 @@ def execute_readonly_query(
             else []
         )
         rows = cursor.fetchall()
-        return [dict(zip(columns, row)) for row in rows]
+        return [dict(zip(columns, row, strict=False)) for row in rows]
 
 
 def get_schema_description() -> str:
     """Generate a human-readable schema description for LLM prompting."""
+    # Allowlist for table introspection (same as guardrails.ALLOWED_TABLES)
+    safe_table_pattern = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
     with get_db() as conn:
         cursor = conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
@@ -76,11 +80,14 @@ def get_schema_description() -> str:
 
         schema_parts = []
         for table in tables:
+            if not safe_table_pattern.fullmatch(table):
+                continue  # Skip any table with a non-standard name
+
             cursor = conn.execute(f"PRAGMA table_info({table})")
             columns = cursor.fetchall()
             col_descs = [f"  {col[1]} ({col[2]})" for col in columns]
 
-            cursor = conn.execute(f"SELECT COUNT(*) FROM {table}")
+            cursor = conn.execute(f"SELECT COUNT(*) FROM [{table}]")
             count = cursor.fetchone()[0]
 
             schema_parts.append(

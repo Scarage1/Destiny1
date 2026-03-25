@@ -6,7 +6,6 @@ from backend.database import execute_readonly_query
 from backend.ingest import run_ingestion
 from backend.main import app
 
-
 client = TestClient(app)
 
 

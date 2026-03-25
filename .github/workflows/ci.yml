@@ -1,58 +1,74 @@
+# CI —  backend lint + tests, frontend tests + build
+# Runs on every push to main/feat/fix/docs branches and on PRs targeting main.
+
 name: CI
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   push:
-    branches:
-      - main
-      - feat/**
-      - fix/**
-      - docs/**
-      - test/**
+    branches: [main, "feat/**", "fix/**", "docs/**", "test/**"]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   backend:
+    name: Backend — lint + test
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python 3.13
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
 
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          pip install -r backend/requirements-dev.txt
 
-      - name: Run backend tests
-        run: python -m pytest backend/tests -q --cov=backend --cov-report=term-missing --cov-fail-under=70
+      - name: Lint (ruff)
+        run: ruff check backend/ --output-format=github
+
+      - name: Test + coverage
+        run: >-
+          python -m pytest backend/tests -q
+          --cov=backend
+          --cov-report=term-missing
+          --cov-fail-under=70
 
   frontend:
+    name: Frontend — test + build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: npm ci
         working-directory: frontend
 
-      - name: Run frontend tests
+      - name: Run tests
         run: npm test
         working-directory: frontend
 
-      - name: Build frontend
+      - name: Build
         run: npm run build
         working-directory: frontend

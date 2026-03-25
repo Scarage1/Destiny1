@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    image: o2c-intelligence:local
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      # Mount data directory so the SQLite DB persists between runs
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

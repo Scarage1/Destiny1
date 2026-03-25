@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .observability import log_event
+
 try:
     from ..db_adapter import get_db_adapter
 except ImportError:

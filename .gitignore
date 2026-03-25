@@ -12,6 +12,9 @@ venv/
 .env.*
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+celerybeat-schedule
 .coverage
 htmlcov/
 
@@ -33,9 +36,9 @@ pnpm-debug.log*
 # Data artifacts
 data/raw/*
 !data/raw/.gitkeep
-data/o2c.db
-data/o2c.db-wal
-data/o2c.db-shm
+data/*.db
+data/*.db-wal
+data/*.db-shm
 o2c.db
 
 # Logs

@@ -278,7 +278,7 @@ def test_query_agent_raises_for_unsupported_plan() -> None:
             model=None,
             trace_id="q7",
         )
-        assert False, "Expected ValueError"
+        raise AssertionError("Expected ValueError")
     except ValueError as e:
         assert "clarification" in str(e).lower()
 

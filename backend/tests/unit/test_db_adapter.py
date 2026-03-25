@@ -22,6 +22,6 @@ def test_postgres_adapter_requires_dsn(monkeypatch) -> None:
 
     try:
         adapter.execute_readonly_query("SELECT 1")
-        assert False, "Expected RuntimeError when POSTGRES_DSN is missing"
+        raise AssertionError("Expected RuntimeError when POSTGRES_DSN is missing")
     except RuntimeError as e:
         assert "POSTGRES_DSN" in str(e)

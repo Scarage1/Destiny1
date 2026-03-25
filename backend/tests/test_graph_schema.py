@@ -3,13 +3,13 @@ from pydantic import ValidationError
 
 from backend.app.models.graph_schema import (
     Customer,
-    Placed,
+    CustomerId,
+    DeliveryId,
+    Edge,
     FulfilledBy,
     HasItem,
-    Edge,
-    CustomerId,
+    Placed,
     SalesOrderId,
-    DeliveryId,
 )
 
 

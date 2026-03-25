@@ -3,15 +3,15 @@ from __future__ import annotations
 from .observability import log_event
 
 try:
-    from ..guardrails import check_domain_relevance, REJECTION_RESPONSE
+    from ..guardrails import REJECTION_RESPONSE, check_domain_relevance
 except ImportError:
-    from guardrails import check_domain_relevance, REJECTION_RESPONSE
+    from guardrails import REJECTION_RESPONSE, check_domain_relevance
 
 
 ALLOWED_INTENTS = {"trace_flow", "detect_anomaly", "status_lookup", "analyze"}
 INTENT_ENTITY_RULES = {
-    "trace_flow": {"invoice", "sales_order", "delivery", None},
-    "detect_anomaly": {None, "sales_order", "invoice", "delivery"},
+    "trace_flow": {"invoice", "sales_order", "delivery", "payment", None},
+    "detect_anomaly": {None, "sales_order", "invoice", "delivery", "payment", "customer", "product"},
     "status_lookup": {"invoice", "sales_order", "delivery", "payment", None},
     "analyze": {None, "customer", "product", "invoice", "sales_order", "delivery", "payment"},
 }

@@ -44,10 +44,10 @@ const NODE_COLORS = {
 const LEGEND_TYPES = ['Customer', 'SalesOrder', 'Delivery', 'BillingDocument', 'Payment', 'Product']
 
 const EXAMPLE_QUERIES = [
-  'Top products by billing documents',
-  'Find sales orders with broken flow',
-  'Show customers and their sales orders',
-  'Trace invoice 90000322 end-to-end',
+  { icon: '📊', text: 'Top products by billing documents' },
+  { icon: '🔍', text: 'Find sales orders with broken flow' },
+  { icon: '👥', text: 'Show customers and their sales orders' },
+  { icon: '🔗', text: 'Trace invoice 90000322 end-to-end' },
 ]
 
 function getNodeType(id) {
@@ -90,6 +90,8 @@ export default function Workspace() {
   const inputRef = useRef(null)
   const nodeSet = useRef(new Set())
   const expandedNodesRef = useRef(new Set())
+
+  // Persist session
   useEffect(() => {
     try {
       const snap = buildSessionSnapshot({
@@ -175,6 +177,14 @@ export default function Workspace() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  // Auto-expand textarea
+  const handleInputChange = useCallback((e) => {
+    setInput(e.target.value)
+    const el = e.target
+    el.style.height = 'auto'
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px'
+  }, [])
+
   // Expand node
   const expandNode = useCallback(async (nodeId) => {
     if (expandedNodesRef.current.has(nodeId)) return
@@ -223,6 +233,10 @@ export default function Workspace() {
     if (!q || isQuerying) return
     const startedAt = performance.now()
     setInput('')
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto'
+    }
     setMessages(prev => [...prev, { role: 'user', text: q }])
     setIsQuerying(true)
     try {
@@ -251,7 +265,7 @@ export default function Workspace() {
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'system',
-        text: `Query failed: ${err?.message || 'Unknown error'}`,
+        text: `Something went wrong. ${err?.message || 'Please try again.'}`,
         status: 'error',
       }])
     } finally {
@@ -259,6 +273,18 @@ export default function Workspace() {
       setIsQuerying(false)
     }
   }
+
+  // Handle Enter/Shift+Enter
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  // Zoom controls
+  const handleZoomIn = () => graphRef.current?.zoom(graphRef.current.zoom() * 1.4, 300)
+  const handleZoomOut = () => graphRef.current?.zoom(graphRef.current.zoom() / 1.4, 300)
 
   // Node painting
   const paintNode = useCallback((node, ctx, globalScale) => {
@@ -324,14 +350,17 @@ export default function Workspace() {
       {/* Graph */}
       <div className="graph-panel">
         {loadingGraph ? (
-          <div className="graph-loading">Loading graph…</div>
-        ) : graphError ? (
           <div className="graph-loading">
-            <p style={{ marginBottom: '0.75rem' }}>Backend unavailable — graph could not load.</p>
-            <button
-              onClick={loadGraph}
-              style={{ padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', background: 'var(--color-primary, #6f93d8)', color: '#fff', border: 'none', fontSize: '0.85rem' }}
-            >
+            <div className="graph-loading__text">Loading graph…</div>
+            <div className="graph-loading__shimmer" />
+          </div>
+        ) : graphError ? (
+          <div className="graph-error">
+            <div className="graph-error__icon">⬡</div>
+            <div className="graph-error__text">
+              Unable to connect to the backend. Check that the server is running and try again.
+            </div>
+            <button className="graph-error__retry" onClick={loadGraph}>
               Retry
             </button>
           </div>
@@ -370,6 +399,14 @@ export default function Workspace() {
           ))}
         </div>
 
+        {/* Zoom controls */}
+        {!loadingGraph && !graphError && (
+          <div className="graph-controls">
+            <button className="graph-controls__btn" onClick={handleZoomIn} title="Zoom in" type="button">+</button>
+            <button className="graph-controls__btn" onClick={handleZoomOut} title="Zoom out" type="button">−</button>
+          </div>
+        )}
+
         {/* Node tooltip */}
         {selectedNode && (
           <NodeTooltip
@@ -389,21 +426,23 @@ export default function Workspace() {
         <div className="chat__header">
           <div className="chat__header-main">
             <div className="chat__header-title">Query</div>
-            <div className="chat__header-subtitle">Deterministic answers grounded in your data.</div>
+            <div className="chat__header-subtitle">Ask anything about your O2C data</div>
           </div>
         </div>
 
         <div className="chat__messages">
           {messages.length === 0 ? (
             <div className="chat__welcome">
-              <div className="chat__welcome-title">Query your system</div>
+              <div className="chat__welcome-icon">⬡</div>
+              <div className="chat__welcome-title">What would you like to know?</div>
               <div className="chat__welcome-desc">
-                Ask about sales orders, deliveries, billing, and payments.
+                Ask about sales orders, deliveries, billing, payments, and more. Every answer is grounded in your data.
               </div>
               <div className="chat__examples">
                 {EXAMPLE_QUERIES.map((q, i) => (
-                  <button type="button" key={i} className="chat__example" onClick={() => handleSend(q)}>
-                    {q}
+                  <button type="button" key={i} className="chat__example" onClick={() => handleSend(q.text)}>
+                    <span className="chat__example-icon">{q.icon}</span>
+                    {q.text}
                   </button>
                 ))}
               </div>
@@ -416,7 +455,10 @@ export default function Workspace() {
           {isQuerying && (
             <div className="message message--system">
               <div className="message__bubble">
-                <div className="loading-dots"><span /><span /><span /></div>
+                <div className="thinking-indicator">
+                  <span className="thinking-indicator__text">Thinking</span>
+                  <span className="thinking-indicator__dots"><span /><span /><span /></span>
+                </div>
               </div>
             </div>
           )}
@@ -425,17 +467,18 @@ export default function Workspace() {
 
         <div className="chat__input-area">
           <form className="chat__input-form" onSubmit={e => { e.preventDefault(); handleSend() }}>
-            <input
+            <textarea
               ref={inputRef}
               className="chat__input"
-              type="text"
-              placeholder="Query your system…"
+              placeholder="Ask about your O2C data…"
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
               disabled={isQuerying}
+              rows={1}
             />
-            <button className="chat__send-btn" type="submit" disabled={isQuerying || !input.trim()}>
-              Send
+            <button className="chat__send-btn" type="submit" disabled={isQuerying || !input.trim()} title="Send">
+              ↑
             </button>
           </form>
         </div>

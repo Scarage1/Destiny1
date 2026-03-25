@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from backend.ingest import run_ingestion
 from backend.graph_builder import build_graph, get_relationship_diagnostics, reset_graph_cache
+from backend.ingest import run_ingestion
 
 
 def _graph_fingerprint() -> tuple[int, int, int, int]:
@@ -12,7 +12,7 @@ def _graph_fingerprint() -> tuple[int, int, int, int]:
     node_count = graph.number_of_nodes()
     edge_count = graph.number_of_edges()
     unique_node_ids = len(set(graph.nodes()))
-    unique_edge_keys = len(set((u, v, d.get("relationship")) for u, v, d in graph.edges(data=True)))
+    unique_edge_keys = len({(u, v, d.get("relationship")) for u, v, d in graph.edges(data=True)})
     return node_count, edge_count, unique_node_ids, unique_edge_keys
 
 

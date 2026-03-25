@@ -14,6 +14,16 @@ export default function Landing() {
 
       {/* Hero */}
       <section className="hero">
+        {/* Floating dots background */}
+        <div className="hero__bg-dots">
+          <div className="hero__bg-dot" />
+          <div className="hero__bg-dot" />
+          <div className="hero__bg-dot" />
+          <div className="hero__bg-dot" />
+          <div className="hero__bg-dot" />
+          <div className="hero__bg-dot" />
+        </div>
+
         <div className="hero__content">
           <div className="hero__eyebrow">Order-to-Cash Intelligence</div>
           <h1 className="hero__title">See how your business flows.</h1>
@@ -25,6 +35,9 @@ export default function Landing() {
             Open Workspace
             <span className="hero__cta-arrow">→</span>
           </Link>
+          <div className="hero__shortcut">
+            Press <kbd>/</kbd> in workspace to start querying
+          </div>
         </div>
       </section>
 

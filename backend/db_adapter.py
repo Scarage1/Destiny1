@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import os
 import importlib
+import os
 from typing import Any, Protocol
 
 
@@ -57,7 +57,7 @@ class PostgresAdapter:
                     return []
                 columns = [desc.name for desc in cur.description]
                 rows = cur.fetchall()
-                return [dict(zip(columns, row)) for row in rows]
+                return [dict(zip(columns, row, strict=False)) for row in rows]
 
     def db_exists(self) -> bool:
         return bool(self.dsn)

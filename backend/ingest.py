@@ -5,11 +5,12 @@ and loads them into SQLite tables.
 
 import json
 import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 try:
-    from .database import get_db, init_schema, DB_PATH
+    from .database import DB_PATH, get_db, init_schema
     from .ingestion.normalizer import (
         normalize_customer,
         normalize_delivery,
@@ -22,7 +23,7 @@ try:
         normalize_sales_order_item,
     )
 except ImportError:
-    from database import get_db, init_schema, DB_PATH
+    from database import DB_PATH, get_db, init_schema
     from ingestion.normalizer import (
         normalize_customer,
         normalize_delivery,
@@ -348,7 +349,7 @@ def load_entity(
 
     with get_db() as conn:
         for jf in jsonl_files:
-            with open(jf, "r") as f:
+            with open(jf) as f:
                 for line_num, line in enumerate(f, 1):
                     line = line.strip()
                     if not line:
@@ -371,7 +372,7 @@ def load_entity(
                                 continue
 
                         values = []
-                        for src_field, db_col in columns.items():
+                        for src_field, _db_col in columns.items():
                             raw_val = record.get(src_field)
                             values.append(_parse_value(raw_val))
                         conn.execute(insert_sql, values)

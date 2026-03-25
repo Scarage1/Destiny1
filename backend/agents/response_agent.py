@@ -8,7 +8,6 @@ from typing import Any
 
 from .observability import log_event
 
-
 LLM_TIMEOUT_SECONDS = 20
 
 try:
@@ -79,12 +78,38 @@ def _row_to_sentence(row: dict[str, Any], max_fields: int = 4) -> str:
     for key, value in row.items():
         if value is None:
             continue
-        parts.append(f"{_humanize_column_name(key)} is {_format_value(value)}")
+        parts.append(f"{_humanize_column_name(key)}: {_format_value(value)}")
         if len(parts) >= max_fields:
             break
     if not parts:
         return "No populated fields were returned for this row"
     return ", ".join(parts)
+
+
+# Map technical column names to friendly entity labels
+_DIMENSION_LABELS: dict[str, str] = {
+    "salesorder": "Sales Order",
+    "salesorderid": "Sales Order",
+    "billingdocument": "Invoice",
+    "billingdoc": "Invoice",
+    "deliverydocument": "Delivery",
+    "delivery": "Delivery",
+    "businesspartner": "Customer",
+    "soldtoparty": "Customer",
+    "customer": "Customer",
+    "customername": "Customer",
+    "product": "Product",
+    "material": "Product",
+    "productdescription": "Product",
+    "plant": "Plant",
+    "paymentdocument": "Payment",
+}
+
+
+def _humanize_dimension_label(col: str) -> str:
+    """Return a human-friendly entity label for a dimension column name."""
+    normalized = col.lower().replace("_", "").replace(" ", "")
+    return _DIMENSION_LABELS.get(normalized, _humanize_column_name(col))
 
 
 def _deterministic_nl_summary(results: list[dict[str, Any]]) -> str:
@@ -124,12 +149,13 @@ def _deterministic_nl_summary(results: list[dict[str, Any]]) -> str:
     if metric_candidates and dimension_candidates:
         metric_col = metric_candidates[0]
         dimension_col = dimension_candidates[0]
-        lines = [intro, "Here are the top results:"]
+        entity_label = _humanize_dimension_label(dimension_col)
+        metric_label = _humanize_column_name(metric_col)
+        lines = [intro, f"Here are the top results ranked by {metric_label}:"]
         for idx, row in enumerate(results[:5], start=1):
             dimension_val = _format_value(row.get(dimension_col))
             metric_val = _format_value(row.get(metric_col))
-            metric_label = _humanize_column_name(metric_col)
-            lines.append(f"{idx}. {dimension_val} has {metric_val} {metric_label}.")
+            lines.append(f"{idx}. {entity_label} {dimension_val} — {metric_val} {metric_label}")
         return "\n".join(lines)
 
     lines = [intro, "Here are the first rows in plain language:"]
@@ -147,7 +173,7 @@ def _generate_model_answer(
     if timeout_seconds <= 0:
         raise TimeoutError("No response budget remaining")
 
-    result_queue: "queue.Queue[tuple[str, Any]]" = queue.Queue(maxsize=1)
+    result_queue: queue.Queue[tuple[str, Any]] = queue.Queue(maxsize=1)
 
     def _worker() -> None:
         try:
@@ -159,7 +185,7 @@ def _generate_model_answer(
         except Exception as exc:  # pragma: no cover - surfaced through queue in tests
             result_queue.put(("err", exc))
 
-    thread = threading.Thread(target=_worker, daemon=True)
+    thread = threading.Thread(target=_worker, daemon=True, name=f"response-synth-{trace_id[:8]}")
     thread.start()
     thread.join(timeout_seconds)
 
@@ -167,7 +193,7 @@ def _generate_model_answer(
         log_event(
             trace_id,
             "response_timeout",
-            {"timeout_seconds": timeout_seconds},
+            {"timeout_seconds": timeout_seconds, "thread_leaked": True},
         )
         raise TimeoutError(f"Response synthesis timed out after {timeout_seconds:.2f}s")
 

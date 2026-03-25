@@ -6,7 +6,6 @@ from typing import Any
 
 from .observability import log_event
 
-
 LLM_TIMEOUT_SECONDS = 20
 SHOW_ALL_PHRASES = {
     "show all",
@@ -55,6 +54,31 @@ PENDING_MOVEMENT_WORDS = {
     "movement pending",
 }
 
+# Common domain-specific misspellings mapped to their canonical form.
+# Applied before heuristic matching so typos don't bypass keyword detection.
+_TYPO_CORRECTIONS: dict[str, str] = {
+    "custmer": "customer", "customr": "customer", "custumer": "customer", "cust": "customer",
+    "clinet": "client",
+    "ordr": "order", "oredr": "order", "slae": "sale", "slaes": "sales",
+    "invioce": "invoice", "invoic": "invoice", "invice": "invoice",
+    "biiling": "billing", "biling": "billing", "billig": "billing",
+    "delvry": "delivery", "delivry": "delivery", "delievry": "delivery",
+    "pymnt": "payment", "paymet": "payment", "pament": "payment",
+    "prodcut": "product", "prduct": "product",
+    "amout": "amount", "amonut": "amount",
+    "quatity": "quantity", "qauntity": "quantity",
+    "tace": "trace", "trae": "trace", "trce": "trace",
+    "anamoly": "anomaly", "anomaley": "anomaly",
+    "unsold": "not sold", "unpayed": "unpaid", "nonpaid": "unpaid",
+}
+
+
+def _apply_typo_corrections(text: str) -> str:
+    """Replace known domain misspellings word-by-word before heuristic matching."""
+    words = text.split()
+    corrected = [_TYPO_CORRECTIONS.get(w.lower().rstrip("s,."), w) for w in words]
+    return " ".join(corrected)
+
 
 def _is_probable_entity_id(value: str | None) -> bool:
     if not value:
@@ -100,7 +124,9 @@ def _contains_any_term(text: str, terms: set[str] | list[str] | tuple[str, ...])
 
 
 def _heuristic_plan(user_query: str, context: dict[str, Any]) -> dict[str, Any]:
-    q = user_query.lower()
+    # Pre-process: fix common domain misspellings so keyword matching still works
+    corrected_query = _apply_typo_corrections(user_query)
+    q = corrected_query.lower()
     intent = "analyze"
     operation = None
     confidence = 0.9
@@ -210,10 +236,7 @@ def _heuristic_plan(user_query: str, context: dict[str, Any]) -> dict[str, Any]:
         metric = "delivery_count"
         operation = "max"
 
-    if customer_product_relation_query:
-        entity_type = entity_type or "customer"
-        group_by = "customer"
-    elif unpaid_query and customer_query:
+    if customer_product_relation_query or unpaid_query and customer_query:
         entity_type = entity_type or "customer"
         group_by = "customer"
     elif pending_delivery_query and "order" in q:
@@ -284,21 +307,13 @@ def _heuristic_plan(user_query: str, context: dict[str, Any]) -> dict[str, Any]:
         confidence = max(confidence, 0.94)
         if operation is None:
             operation = "list"
-    elif pending_delivery_query and "order" in q:
-        intent = "analyze"
-        clarification = None
-        confidence = max(confidence, 0.94)
-        operation = "list"
-    elif pending_movement_query and delivery_query:
+    elif pending_delivery_query and "order" in q or pending_movement_query and delivery_query:
         intent = "analyze"
         clarification = None
         confidence = max(confidence, 0.94)
         operation = "list"
 
-    if intent == "status_lookup" and not entity_id:
-        confidence = 0.55
-        clarification = "Please provide the document or order ID to continue."
-    elif intent == "trace_flow" and not entity_id and not (
+    if intent == "status_lookup" and not entity_id or intent == "trace_flow" and not entity_id and not (
         "full flow" in q or "billing document" in q
     ):
         confidence = 0.55

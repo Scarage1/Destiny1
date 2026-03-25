@@ -1,53 +1,78 @@
 """
 FastAPI application: serves graph exploration and NL query APIs.
+
+In production (Docker/Azure), the built frontend is served as static files
+from /frontend/dist, meaning a single container handles both API and UI.
 """
 
+import logging
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pathlib import Path
 from typing import Any
 
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+logger = logging.getLogger("o2c")
+
 try:
-    from .db_adapter import get_db_adapter
-    from .agents.orchestrator import process_query
     from .agents.observability import get_metrics_summary, get_trace
+    from .agents.orchestrator import process_query
+    from .db_adapter import get_db_adapter
     from .graph_builder import (
+        build_graph,
         get_graph_overview,
-        get_subgraph,
         get_node_details,
         get_node_neighbors,
-        build_graph,
+        get_subgraph,
     )
 except ImportError:
-    from db_adapter import get_db_adapter
-    from agents.orchestrator import process_query
     from agents.observability import get_metrics_summary, get_trace
+    from agents.orchestrator import process_query
+    from db_adapter import get_db_adapter
     from graph_builder import (
+        build_graph,
         get_graph_overview,
-        get_subgraph,
         get_node_details,
         get_node_neighbors,
-        build_graph,
+        get_subgraph,
     )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Run on startup: ensure DB exists, build graph."""
+    """Run on startup: ensure DB exists, build graph, optionally serve frontend."""
     adapter = get_db_adapter()
 
     if not adapter.db_exists():
-        print("⚠ Database source not found. Run ingestion/setup first.")
+        logger.warning("Database source not found. Run ingestion/setup first.")
     elif adapter.name != "sqlite":
-        print(f"ℹ Graph build skipped for backend '{adapter.name}' (current graph engine expects SQLite).")
+        logger.info("Graph build skipped for backend '%s' (SQLite expected).", adapter.name)
     else:
-        print("Building graph from database...")
+        logger.info("Building graph from database...")
         g = build_graph()
-        print(
-            f"✓ Graph built: {g.number_of_nodes()} nodes, {g.number_of_edges()} edges"
+        logger.info(
+            "Graph built: %d nodes, %d edges",
+            g.number_of_nodes(),
+            g.number_of_edges(),
         )
+
+    # Mount frontend static files only when SERVE_STATIC=true (Docker / Azure).
+    # Mounting here (after lifespan starts) ensures all /api/* routes defined earlier
+    # take priority. Never enabled during pytest runs.
+    _frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+    if os.environ.get("SERVE_STATIC", "").lower() == "true" and _frontend_dist.is_dir():
+        app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="ui")
+        logger.info("Serving frontend from %s", _frontend_dist)
+
     yield
 
 
@@ -57,6 +82,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Response compression — reduces payload size significantly for large graph responses
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # CORS — configurable via CORS_ALLOWED_ORIGINS env var (comma-separated)
 _CORS_ORIGINS_DEFAULT = "http://localhost:3000,http://127.0.0.1:3000"
@@ -72,6 +100,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Static files are mounted LAST in the lifespan (after all API routes are registered)
+# so that /api/* routes always take precedence. Gate on SERVE_STATIC=true so tests
+# (which have a built dist/) are never affected.
 
 
 # --- Request/Response Models ---
@@ -143,11 +175,20 @@ def root():
 
 @app.get("/api/health")
 def health_check():
+    """Azure App Service health probe endpoint."""
+    from .graph_builder import get_graph_overview  # noqa: PLC0415 — lazy import to avoid circular
     adapter = get_db_adapter()
+    try:
+        overview = get_graph_overview()
+        node_count = overview.get("stats", {}).get("node_count", 0)
+    except Exception:
+        node_count = 0
     return {
         "status": "healthy",
         "database": adapter.db_exists(),
         "db_backend": adapter.name,
+        "graph_nodes": node_count,
+        "version": "1.0.0",
     }
 
 
@@ -225,7 +266,24 @@ def ask_query(request: QueryRequest):
     """Process a natural language query against the O2C dataset."""
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
-    result = process_query(request.query, conversation_id=request.conversation_id)
+    try:
+        result = process_query(request.query, conversation_id=request.conversation_id)
+    except Exception as exc:
+        result = {
+            "answer": "An internal error occurred while processing your query. Please try again.",
+            "query": None,
+            "results": None,
+            "result_columns": None,
+            "total_results": None,
+            "referenced_nodes": [],
+            "status": "error",
+            "trace_id": "",
+            "conversation_id": request.conversation_id,
+            "intent": None,
+            "plan": None,
+            "verification": {"status": "failed", "warnings": [str(exc)]},
+            "agent_trace": None,
+        }
     return QueryResponse(**result)
 
 
@@ -236,6 +294,6 @@ def query_trace(trace_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-
-    port = int(os.environ.get("API_PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    # PORT is injected by Azure App Service; fall back to 8000 locally
+    port = int(os.environ.get("PORT", os.environ.get("API_PORT", 8000)))
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=True)

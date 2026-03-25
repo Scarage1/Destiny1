@@ -46,11 +46,29 @@ def test_executor_uses_cache_for_repeated_query(monkeypatch) -> None:
 
 
 def test_executor_circuit_breaker_short_circuits_after_failures(monkeypatch) -> None:
+    from backend.agents.runtime_config import RuntimeConfig
+
     executor_agent._SQL_RESULT_CACHE.clear()
     executor_agent._EXEC_CB_STATE["failures"] = 0
     executor_agent._EXEC_CB_STATE["opened_until"] = 0.0
-    monkeypatch.setattr(executor_agent, "EXEC_CIRCUIT_BREAKER_FAILURE_THRESHOLD", 2)
-    monkeypatch.setattr(executor_agent, "EXEC_CIRCUIT_BREAKER_OPEN_SECONDS", 30)
+
+    # Mock runtime config with low threshold for testing
+    test_config = RuntimeConfig(
+        gemini_api_key="",
+        groq_api_key="",
+        groq_model="test",
+        llm_timeout_seconds=5.0,
+        pipeline_timeout_ms=5000,
+        stage_budget_ms={},
+        strict_deterministic=False,
+        sql_cache_ttl_seconds=30,
+        sql_cache_max_entries=256,
+        sql_exec_retries=1,
+        exec_cb_failure_threshold=2,
+        exec_cb_open_seconds=30,
+        memory_max_conversations=10,
+    )
+    monkeypatch.setattr(executor_agent, "get_runtime_config", lambda: test_config)
 
     class _FailingAdapter:
         name = "stub"

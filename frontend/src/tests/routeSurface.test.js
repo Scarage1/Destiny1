@@ -80,9 +80,9 @@ describe('route surfaces', () => {
   it('supports workspace query send lifecycle', async () => {
     render(React.createElement(MemoryRouter, null, React.createElement(Workspace)))
 
-    const input = await screen.findByPlaceholderText('Query your system…')
+    const input = await screen.findByPlaceholderText('Ask about your O2C data…')
     fireEvent.change(input, { target: { value: 'Find broken flows' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+    fireEvent.click(screen.getByTitle('Send'))
 
     await waitFor(() => {
       expect(screen.getByText('Find broken flows')).toBeTruthy()
@@ -121,16 +121,16 @@ describe('route surfaces', () => {
 
     render(React.createElement(MemoryRouter, null, React.createElement(Workspace)))
 
-    const input = await screen.findByPlaceholderText('Query your system…')
+    const input = await screen.findByPlaceholderText('Ask about your O2C data…')
     fireEvent.change(input, { target: { value: 'highest order' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+    fireEvent.click(screen.getByTitle('Send'))
 
     await waitFor(() => {
       expect(screen.getByText('Please specify a metric.')).toBeTruthy()
     })
 
     fireEvent.change(input, { target: { value: 'net amount' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+    fireEvent.click(screen.getByTitle('Send'))
 
     await waitFor(() => {
       expect(askQuery).toHaveBeenNthCalledWith(1, 'highest order', null)
@@ -142,7 +142,7 @@ describe('route surfaces', () => {
   it('focuses input when slash shortcut is pressed', async () => {
     render(React.createElement(MemoryRouter, null, React.createElement(Workspace)))
 
-    const input = await screen.findByPlaceholderText('Query your system…')
+    const input = await screen.findByPlaceholderText('Ask about your O2C data…')
     fireEvent.keyDown(window, { key: '/' })
     expect(document.activeElement).toBe(input)
   })

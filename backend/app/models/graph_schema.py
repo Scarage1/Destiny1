@@ -1,6 +1,6 @@
 from typing import NewType
-from pydantic import BaseModel, Field, model_validator
 
+from pydantic import BaseModel, Field, model_validator
 
 # -----------------------------------------------------------------------------
 # Strict Type Definitions (for mypy static analysis)

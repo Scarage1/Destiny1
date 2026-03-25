@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from collections import OrderedDict, deque
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +14,7 @@ _RECENT_TRACES_MAX = _RUNTIME_CONFIG.observability_recent_traces
 _EVENTS_PER_TRACE_MAX = _RUNTIME_CONFIG.observability_events_per_trace
 _METRICS_MAX_EVENTS_SCAN = _RUNTIME_CONFIG.observability_metrics_max_events_scan
 
-_RECENT_EVENTS_BY_TRACE: "OrderedDict[str, deque[dict[str, Any]]]" = OrderedDict()
+_RECENT_EVENTS_BY_TRACE: OrderedDict[str, deque[dict[str, Any]]] = OrderedDict()
 
 
 def _remember_recent_event(record: dict[str, Any]) -> None:
@@ -37,7 +37,7 @@ def _remember_recent_event(record: dict[str, Any]) -> None:
 def log_event(trace_id: str, stage: str, payload: dict[str, Any]) -> None:
     """Write structured agent events for traceability and audit."""
     record = {
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
         "trace_id": trace_id,
         "stage": stage,
         "payload": payload,

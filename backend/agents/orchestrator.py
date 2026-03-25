@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-import socket
-import time
 import hashlib
 import json
+import socket
+import time
 import uuid
 from typing import Any
 
 import google.generativeai as genai
 import httpx
 
+from .executor_agent import execute_sql
 from .guard_agent import guard
 from .intent_schema import validate_and_normalize_plan
 from .memory import get_context, update_context
@@ -17,10 +18,9 @@ from .observability import build_agent_trace_summary, log_event
 from .planner_agent import plan as planner_plan
 from .query_agent import generate_sql
 from .response_agent import synthesize
-from .executor_agent import execute_sql
+from .runtime_config import RuntimeConfig, get_runtime_config
 from .validator_agent import validate_plan_for_execution
 from .verifier_agent import verify
-from .runtime_config import RuntimeConfig, get_runtime_config
 
 try:
     from ..guardrails import REJECTION_RESPONSE, normalize_user_query
@@ -187,30 +187,6 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
     def _pipeline_timed_out() -> bool:
         return _elapsed_pipeline_ms() > pipeline_timeout_ms
 
-    def _pipeline_timeout_result(intent_plan: dict[str, Any] | None) -> dict[str, Any]:
-        reason = "Request timed out while processing. Please narrow the query and try again."
-        verification = {"status": "failed", "warnings": [reason]}
-        log_event(
-            trace_id,
-            "pipeline_timeout",
-            {"elapsed_ms": _elapsed_pipeline_ms(), "timeout_ms": pipeline_timeout_ms},
-        )
-        return {
-            "answer": reason,
-            "query": None,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": "error",
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": intent_plan.get("intent") if intent_plan else None,
-            "plan": intent_plan,
-            "verification": verification,
-            "agent_trace": _agent_trace(intent_plan, None, verification, None, None),
-        }
-
     def _agent_trace(
         intent_plan: dict[str, Any] | None,
         sql: str | None,
@@ -230,6 +206,36 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
             stage_latencies_ms=stage_latencies_ms,
         )
 
+    def _make_result(
+        *,
+        answer: str,
+        status: str,
+        plan: dict[str, Any] | None = None,
+        sql: str | None = None,
+        results: list[dict[str, Any]] | None = None,
+        referenced_nodes: list[str] | None = None,
+        verification: dict[str, Any] | None = None,
+        clarification: str | None = None,
+        row_count: int | None = None,
+    ) -> dict[str, Any]:
+        """Single factory for the pipeline result dict — eliminates 10x boilerplate."""
+        v = verification or {"status": "skipped", "warnings": []}
+        return {
+            "answer": answer,
+            "query": sql,
+            "results": results,
+            "result_columns": list(results[0].keys()) if results else None,
+            "total_results": len(results) if results is not None else None,
+            "referenced_nodes": referenced_nodes or [],
+            "status": status,
+            "trace_id": trace_id,
+            "conversation_id": conversation_id,
+            "intent": plan.get("intent") if plan else None,
+            "plan": plan,
+            "verification": v,
+            "agent_trace": _agent_trace(plan, sql, v, clarification, row_count),
+        }
+
     log_event(trace_id, "request", {"query": normalized_query, "conversation_id": conversation_id})
 
     def _query_fingerprint(query: str, plan_payload: dict[str, Any] | None = None) -> str:
@@ -241,38 +247,18 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
 
     if not normalized_query:
-        return {
-            "answer": "Query cannot be empty.",
-            "query": None,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": "rejected",
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": None,
-            "plan": None,
-            "verification": {"status": "skipped", "warnings": ["Empty query"]},
-            "agent_trace": _agent_trace(None, None, {"status": "skipped", "warnings": ["Empty query"]}, None, None),
-        }
+        return _make_result(
+            answer="Query cannot be empty.",
+            status="rejected",
+            verification={"status": "skipped", "warnings": ["Empty query"]},
+        )
 
     if len(normalized_query) > 2000:
-        return {
-            "answer": "Query is too long. Please keep it under 2000 characters.",
-            "query": None,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": "rejected",
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": None,
-            "plan": None,
-            "verification": {"status": "skipped", "warnings": ["Query too long"]},
-            "agent_trace": _agent_trace(None, None, {"status": "skipped", "warnings": ["Query too long"]}, None, None),
-        }
+        return _make_result(
+            answer="Query is too long. Please keep it under 2000 characters.",
+            status="rejected",
+            verification={"status": "skipped", "warnings": ["Query too long"]},
+        )
 
     reasoning_model = _resolve_reasoning_model(trace_id, runtime_config)
     if reasoning_model is not None:
@@ -296,24 +282,26 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
             "Please specify the entity and metric you want."
         )
         log_event(trace_id, "clarification", {"reason": str(e), "question": clarification_msg})
-        return {
-            "answer": clarification_msg,
-            "query": None,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": "clarification",
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": None,
-            "plan": None,
-            "verification": {"status": "skipped", "warnings": ["Clarification required"]},
-            "agent_trace": _agent_trace(None, None, {"status": "skipped", "warnings": ["Clarification required"]}, clarification_msg, None),
-        }
+        return _make_result(
+            answer=clarification_msg,
+            status="clarification",
+            verification={"status": "skipped", "warnings": ["Clarification required"]},
+            clarification=clarification_msg,
+        )
 
     if _pipeline_timed_out():
-        return _pipeline_timeout_result(plan)
+        reason = "Request timed out while processing. Please narrow the query and try again."
+        log_event(
+            trace_id,
+            "pipeline_timeout",
+            {"elapsed_ms": _elapsed_pipeline_ms(), "timeout_ms": pipeline_timeout_ms},
+        )
+        return _make_result(
+            answer=reason,
+            status="error",
+            plan=plan,
+            verification={"status": "failed", "warnings": [reason]},
+        )
 
     clarification_msg = plan.get("clarification")
     confidence = float(plan.get("confidence", 1.0))
@@ -322,41 +310,23 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
     if clarification_msg and confidence < 0.7:
         update_context(conversation_id, plan, trace_id, pending_clarification=True)
         log_event(trace_id, "clarification", {"confidence": confidence, "question": clarification_msg})
-        return {
-            "answer": clarification_msg,
-            "query": None,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": "clarification",
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": plan.get("intent"),
-            "plan": plan,
-            "verification": {"status": "skipped", "warnings": ["Clarification required"]},
-            "agent_trace": _agent_trace(plan, None, {"status": "skipped", "warnings": ["Clarification required"]}, clarification_msg, None),
-        }
+        return _make_result(
+            answer=clarification_msg,
+            status="clarification",
+            plan=plan,
+            verification={"status": "skipped", "warnings": ["Clarification required"]},
+            clarification=clarification_msg,
+        )
 
     stage_started = time.perf_counter()
     allowed, rejection_reason = guard(normalized_query, plan, trace_id)
     _record_stage_latency("guard", stage_started)
     if not allowed:
-        return {
-            "answer": rejection_reason or REJECTION_RESPONSE,
-            "query": None,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": "rejected",
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": plan.get("intent"),
-            "plan": plan,
-            "verification": {"status": "skipped", "warnings": []},
-            "agent_trace": _agent_trace(plan, None, {"status": "skipped", "warnings": []}, None, None),
-        }
+        return _make_result(
+            answer=rejection_reason or REJECTION_RESPONSE,
+            status="rejected",
+            plan=plan,
+        )
 
     # Validate plan for deterministic execution
     stage_started = time.perf_counter()
@@ -370,24 +340,27 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
     if not is_valid:
         update_context(conversation_id, plan, trace_id, pending_clarification=True)
         log_event(trace_id, "clarification", {"question": validation_msg})
-        return {
-            "answer": validation_msg,
-            "query": None,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": "clarification",
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": plan.get("intent"),
-            "plan": plan,
-            "verification": {"status": "skipped", "warnings": ["Clarification required"]},
-            "agent_trace": _agent_trace(plan, None, {"status": "skipped", "warnings": ["Clarification required"]}, validation_msg, None),
-        }
+        return _make_result(
+            answer=validation_msg,
+            status="clarification",
+            plan=plan,
+            verification={"status": "skipped", "warnings": ["Clarification required"]},
+            clarification=validation_msg,
+        )
 
     if _pipeline_timed_out():
-        return _pipeline_timeout_result(plan)
+        reason = "Request timed out while processing. Please narrow the query and try again."
+        log_event(
+            trace_id,
+            "pipeline_timeout",
+            {"elapsed_ms": _elapsed_pipeline_ms(), "timeout_ms": pipeline_timeout_ms},
+        )
+        return _make_result(
+            answer=reason,
+            status="error",
+            plan=plan,
+            verification={"status": "failed", "warnings": [reason]},
+        )
 
     # Deterministic SQL generation
     try:
@@ -404,65 +377,51 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
         clarification = str(e)
         update_context(conversation_id, plan, trace_id, pending_clarification=True)
         log_event(trace_id, "clarification", {"question": clarification})
-        return {
-            "answer": clarification,
-            "query": None,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": "clarification",
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": plan.get("intent"),
-            "plan": plan,
-            "verification": {"status": "skipped", "warnings": ["Clarification required"]},
-            "agent_trace": _agent_trace(plan, None, {"status": "skipped", "warnings": ["Clarification required"]}, clarification, None),
-        }
+        return _make_result(
+            answer=clarification,
+            status="clarification",
+            plan=plan,
+            verification={"status": "skipped", "warnings": ["Clarification required"]},
+            clarification=clarification,
+        )
     except Exception as e:
         log_event(trace_id, "query_agent_error", {"error": str(e)})
-        return {
-            "answer": f"Failed to generate query: {str(e)}",
-            "query": None,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": "error",
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": plan.get("intent"),
-            "plan": plan,
-            "verification": {"status": "failed", "warnings": ["Query generation failed"]},
-            "agent_trace": _agent_trace(plan, None, {"status": "failed", "warnings": ["Query generation failed"]}, None, None),
-        }
+        return _make_result(
+            answer=f"Failed to generate query: {str(e)}",
+            status="error",
+            plan=plan,
+            verification={"status": "failed", "warnings": ["Query generation failed"]},
+        )
 
     # Execute through deterministic executor boundary
     if _pipeline_timed_out():
-        return _pipeline_timeout_result(plan)
+        reason = "Request timed out while processing. Please narrow the query and try again."
+        log_event(
+            trace_id,
+            "pipeline_timeout",
+            {"elapsed_ms": _elapsed_pipeline_ms(), "timeout_ms": pipeline_timeout_ms},
+        )
+        return _make_result(
+            answer=reason,
+            status="error",
+            plan=plan,
+            verification={"status": "failed", "warnings": [reason]},
+        )
 
     stage_started = time.perf_counter()
     execution_out = execute_sql(generated_sql, trace_id, semantic_cache_key=query_fingerprint)
     _record_stage_latency("execution", stage_started)
     if not execution_out.get("ok"):
-        status = execution_out.get("status") or "error"
+        exec_status = execution_out.get("status") or "error"
         reason = execution_out.get("reason") or "Execution failed"
-        warning_label = "SQL blocked" if status == "blocked" else "Execution failed"
-        return {
-            "answer": reason,
-            "query": execution_out.get("sql") or generated_sql,
-            "results": None,
-            "result_columns": None,
-            "total_results": None,
-            "referenced_nodes": [],
-            "status": status,
-            "trace_id": trace_id,
-            "conversation_id": conversation_id,
-            "intent": plan.get("intent"),
-            "plan": plan,
-            "verification": {"status": "failed", "warnings": [warning_label]},
-            "agent_trace": _agent_trace(plan, execution_out.get("sql") or generated_sql, {"status": "failed", "warnings": [warning_label]}, None, None),
-        }
+        warning_label = "SQL blocked" if exec_status == "blocked" else "Execution failed"
+        return _make_result(
+            answer=reason,
+            status=exec_status,
+            plan=plan,
+            sql=execution_out.get("sql") or generated_sql,
+            verification={"status": "failed", "warnings": [warning_label]},
+        )
 
     generated_sql = str(execution_out.get("sql") or generated_sql)
     results = execution_out.get("results") or []
@@ -479,7 +438,18 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
     model = reasoning_model
 
     if _pipeline_timed_out():
-        return _pipeline_timeout_result(plan)
+        reason = "Request timed out while processing. Please narrow the query and try again."
+        log_event(
+            trace_id,
+            "pipeline_timeout",
+            {"elapsed_ms": _elapsed_pipeline_ms(), "timeout_ms": pipeline_timeout_ms},
+        )
+        return _make_result(
+            answer=reason,
+            status="error",
+            plan=plan,
+            verification={"status": "failed", "warnings": [reason]},
+        )
 
     stage_started = time.perf_counter()
     answer, referenced_nodes = synthesize(
@@ -495,18 +465,13 @@ def process_query(user_query: str, conversation_id: str | None = None) -> dict[s
 
     update_context(conversation_id, plan, trace_id)
 
-    return {
-        "answer": answer,
-        "query": generated_sql,
-        "results": results[:20],
-        "result_columns": list(results[0].keys()) if results else [],
-        "total_results": len(results),
-        "referenced_nodes": referenced_nodes,
-        "status": "success",
-        "trace_id": trace_id,
-        "conversation_id": conversation_id,
-        "intent": plan.get("intent"),
-        "plan": plan,
-        "verification": verification,
-        "agent_trace": _agent_trace(plan, generated_sql, verification, None, len(results)),
-    }
+    return _make_result(
+        answer=answer,
+        status="success",
+        plan=plan,
+        sql=generated_sql,
+        results=results[:20],
+        referenced_nodes=referenced_nodes,
+        verification=verification,
+        row_count=len(results),
+    )

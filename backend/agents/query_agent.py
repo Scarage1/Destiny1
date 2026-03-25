@@ -4,6 +4,7 @@ import re
 from typing import Any
 
 from .observability import log_event
+
 try:
     from ..guardrails import validate_sql_safety
 except ImportError:
@@ -41,7 +42,9 @@ Rules:
 """.strip()
 
 def _escape_sql_literal(value: str) -> str:
-    return value.replace("'", "''")
+    """Escape a value for use in a SQL string literal. Strips control chars."""
+    cleaned = re.sub(r"[\x00-\x1f\x7f]", "", str(value))
+    return cleaned.replace("'", "''")
 
 
 def _extract_sql_candidate(text: str) -> str:

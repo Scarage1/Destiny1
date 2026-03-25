@@ -1,12 +1,13 @@
 import pytest
-from pydantic import ValidationError
+
 from backend.ingestion.normalizer import (
-    sanitize_date,
-    sanitize_number,
     clean_record,
     normalize_customer,
-    normalize_sales_order_item
+    normalize_sales_order_item,
+    sanitize_date,
+    sanitize_number,
 )
+
 
 def test_sanitize_date() -> None:
     # SAP Format
@@ -50,7 +51,7 @@ def test_normalize_payload_schema_enforcement() -> None:
         "businessPartnerName": "Acme Corp"
     }
     result = normalize_customer(raw_customer)
-    
+
     # Assert specific prefix enforced ID is in payload
     assert result["id"] == "Customer:101000"
     assert result["businessPartnerName"] == "Acme Corp"

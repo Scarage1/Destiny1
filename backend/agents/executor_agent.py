@@ -6,6 +6,7 @@ from typing import Any
 
 from .observability import log_event
 from .runtime_config import get_runtime_config
+
 try:
     from ..db_adapter import get_db_adapter
 except ImportError:
@@ -17,14 +18,8 @@ except ImportError:
     from guardrails import sanitize_sql, validate_sql_safety
 
 
-_RUNTIME_CONFIG = get_runtime_config()
-SQL_CACHE_TTL_SECONDS = _RUNTIME_CONFIG.sql_cache_ttl_seconds
-SQL_CACHE_MAX_ENTRIES = _RUNTIME_CONFIG.sql_cache_max_entries
-SQL_EXEC_RETRIES = _RUNTIME_CONFIG.sql_exec_retries
-EXEC_CIRCUIT_BREAKER_FAILURE_THRESHOLD = _RUNTIME_CONFIG.exec_cb_failure_threshold
-EXEC_CIRCUIT_BREAKER_OPEN_SECONDS = _RUNTIME_CONFIG.exec_cb_open_seconds
-_SQL_RESULT_CACHE: "OrderedDict[str, tuple[float, list[dict[str, Any]]]]" = OrderedDict()
-_EXEC_CB_STATE = {"failures": 0, "opened_until": 0.0}
+_SQL_RESULT_CACHE: OrderedDict[str, tuple[float, list[dict[str, Any]]]] = OrderedDict()
+_EXEC_CB_STATE: dict[str, int | float] = {"failures": 0, "opened_until": 0.0}
 
 
 def _clone_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -37,27 +32,26 @@ def _canonicalize_sql_for_cache(sql: str) -> str:
     return canonical.lower()
 
 
-def _cache_get(cache_key: str) -> tuple[bool, list[dict[str, Any]]]:
-    if SQL_CACHE_TTL_SECONDS <= 0:
+def _cache_get(cache_key: str, ttl: int) -> tuple[bool, list[dict[str, Any]]]:
+    if ttl <= 0:
         return False, []
     entry = _SQL_RESULT_CACHE.get(cache_key)
     if entry is None:
         return False, []
     ts, payload = entry
-    if (time.time() - ts) > SQL_CACHE_TTL_SECONDS:
+    if (time.time() - ts) > ttl:
         _SQL_RESULT_CACHE.pop(cache_key, None)
         return False, []
-    # LRU touch
     _SQL_RESULT_CACHE.move_to_end(cache_key)
     return True, _clone_rows(payload)
 
 
-def _cache_set(cache_key: str, results: list[dict[str, Any]]) -> None:
-    if SQL_CACHE_TTL_SECONDS <= 0:
+def _cache_set(cache_key: str, results: list[dict[str, Any]], ttl: int, max_entries: int) -> None:
+    if ttl <= 0:
         return
     _SQL_RESULT_CACHE[cache_key] = (time.time(), _clone_rows(results))
     _SQL_RESULT_CACHE.move_to_end(cache_key)
-    while len(_SQL_RESULT_CACHE) > SQL_CACHE_MAX_ENTRIES:
+    while len(_SQL_RESULT_CACHE) > max_entries:
         _SQL_RESULT_CACHE.popitem(last=False)
 
 
@@ -80,18 +74,18 @@ def _is_circuit_open(now: float) -> bool:
     return now < float(_EXEC_CB_STATE.get("opened_until", 0.0))
 
 
-def _mark_execution_failure(now: float, trace_id: str, reason: str) -> None:
+def _mark_execution_failure(now: float, trace_id: str, reason: str, threshold: int, open_seconds: int) -> None:
     failures = int(_EXEC_CB_STATE.get("failures", 0)) + 1
     _EXEC_CB_STATE["failures"] = failures
-    if failures >= EXEC_CIRCUIT_BREAKER_FAILURE_THRESHOLD:
-        opened_until = now + EXEC_CIRCUIT_BREAKER_OPEN_SECONDS
+    if failures >= threshold:
+        opened_until = now + open_seconds
         _EXEC_CB_STATE["opened_until"] = opened_until
         log_event(
             trace_id,
             "execution_circuit_open",
             {
                 "failures": failures,
-                "open_seconds": EXEC_CIRCUIT_BREAKER_OPEN_SECONDS,
+                "open_seconds": open_seconds,
                 "reason": reason,
             },
         )
@@ -104,6 +98,8 @@ def _reset_execution_circuit() -> None:
 
 def execute_sql(sql: str, trace_id: str, semantic_cache_key: str | None = None) -> dict[str, Any]:
     """Execute validated SQL through a strict deterministic boundary."""
+    cfg = get_runtime_config()
+
     validation = validate_sql_safety(sql)
 
     is_safe = False
@@ -145,7 +141,7 @@ def execute_sql(sql: str, trace_id: str, semantic_cache_key: str | None = None) 
             "results": None,
         }
 
-    cache_hit, cached_rows = _cache_get(cache_key)
+    cache_hit, cached_rows = _cache_get(cache_key, cfg.sql_cache_ttl_seconds)
     if cache_hit:
         log_event(
             trace_id,
@@ -164,7 +160,7 @@ def execute_sql(sql: str, trace_id: str, semantic_cache_key: str | None = None) 
             "results": cached_rows,
         }
 
-    attempts = SQL_EXEC_RETRIES + 1
+    attempts = cfg.sql_exec_retries + 1
     last_error: Exception | None = None
     results: list[dict[str, Any]] | None = None
 
@@ -192,7 +188,10 @@ def execute_sql(sql: str, trace_id: str, semantic_cache_key: str | None = None) 
 
     if results is None:
         err = last_error or RuntimeError("Unknown execution error")
-        _mark_execution_failure(time.time(), trace_id, str(err))
+        _mark_execution_failure(
+            time.time(), trace_id, str(err),
+            cfg.exec_cb_failure_threshold, cfg.exec_cb_open_seconds,
+        )
         log_event(
             trace_id,
             "execution_error",
@@ -208,7 +207,7 @@ def execute_sql(sql: str, trace_id: str, semantic_cache_key: str | None = None) 
 
     _reset_execution_circuit()
 
-    _cache_set(cache_key, results)
+    _cache_set(cache_key, results, cfg.sql_cache_ttl_seconds, cfg.sql_cache_max_entries)
 
     log_event(trace_id, "execution", {"row_count": len(results)})
     return {
